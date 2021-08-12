@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package base.common;
+
+import "rpc_service.proto";
+
+
+option go_package = "com.youyu.api/app/rpc/proto_files";
+
+service CentApi{
+  // 配置中心接口
+  rpc GetBusinessConfFile(null) returns (config);
+  rpc SetBusinessConfFile(config) returns (null);
+  rpc GetRpcServerConfFile(null) returns (config);
+  rpc SetRpcServerConfFile(config) returns (null);
+  // 刷新配置文件
+  rpc FlushConfFile(null) returns (null);
+  // 日志接口
+  rpc PushLogStream(stream log) returns (null) {}
+}
+
+
+message config {
+  string type = 1;
+  bytes data = 2;
+}
+
+message log {
+  string fileName = 1;
+  bytes value = 2;
+}

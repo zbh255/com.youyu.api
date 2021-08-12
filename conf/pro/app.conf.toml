@@ -1,0 +1,15 @@
+[rpc_server]
+    ip = "127.0.0.1"
+    port = "5000"
+
+# rpc_server使用
+[database]
+    ip_addr = "192.168.31.24"
+    port = "3306"
+    user_name = "root"
+    user_password = "Cok774.."
+
+[server]
+    ip_addr = "127.0.0.1"
+    port = "8080"
+    protocol = "http"

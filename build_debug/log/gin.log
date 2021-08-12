@@ -1,0 +1,23 @@
+[GIN-debug] POST   /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.AddArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.GetArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/base                  --> com.youyu.api/app/business_server/controller.BaseApi.InitDirection-fm (2 handlers)
+[GIN-debug] PUT    /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.SetArticle-fm (2 handlers)
+[GIN-debug] DELETE /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.DelArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.GetArticleStatistics-fm (2 handlers)
+[GIN-debug] PUT    /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.Options-fm (2 handlers)
+[GIN-debug] DELETE /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.ReduceArticleStatisticsFabulous-fm (2 handlers)
+[GIN-debug] GET    /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.GetAdvertisement-fm (2 handlers)
+[GIN-debug] POST   /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.AddAdvertisement-fm (2 handlers)
+[GIN-debug] PUT    /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.UpdateAdvertisement-fm (2 handlers)
+[GIN-debug] DELETE /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.DelAdvertisement-fm (2 handlers)
+[GIN-debug] Listening and serving HTTP on 127.0.0.1:8080
+{"level":"warn","status":404,"method":"GET","path":"/按国标不该额","ip":"127.0.0.1","latency":0,"user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36 Edg/92.0.902.67","time":"2021-08-10T23:51:45+08:00","message":"Request"}
+{"level":"warn","status":404,"method":"GET","path":"/按国标不该额","ip":"127.0.0.1","latency":0,"user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36 Edg/92.0.902.67","time":"2021-08-10T23:51:45+08:00","message":"Request"}
+{"level":"warn","status":404,"method":"GET","path":"/按国标不该额","ip":"127.0.0.1","latency":0,"user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36 Edg/92.0.902.67","time":"2021-08-10T23:51:45+08:00","message":"Request"}
+{"level":"warn","status":404,"method":"GET","path":"/按国标不该额","ip":"127.0.0.1","latency":0,"user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36 Edg/92.0.902.67","time":"2021-08-10T23:51:45+08:00","message":"Request"}
+{"level":"warn","status":404,"method":"GET","path":"/按国标不该额","ip":"127.0.0.1","latency":0,"user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36 Edg/92.0.902.67","time":"2021-08-10T23:51:46+08:00","message":"Request"}
+{"level":"warn","status":404,"method":"GET","path":"/按国标不该额","ip":"127.0.0.1","latency":0,"user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36 Edg/92.0.902.67","time":"2021-08-10T23:51:46+08:00","message":"Request"}
+{"level":"warn","status":404,"method":"GET","path":"/按国标不该额","ip":"127.0.0.1","latency":0,"user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36 Edg/92.0.902.67","time":"2021-08-10T23:51:46+08:00","message":"Request"}
+{"level":"warn","status":404,"method":"GET","path":"/按国标不该额","ip":"127.0.0.1","latency":0,"user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36 Edg/92.0.902.67","time":"2021-08-10T23:51:46+08:00","message":"Request"}
+{"level":"warn","status":404,"method":"GET","path":"/按国标不该额","ip":"127.0.0.1","latency":0,"user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36 Edg/92.0.902.67","time":"2021-08-10T23:51:46+08:00","message":"Request"}
+{"level":"warn","status":404,"method":"GET","path":"/按国标不该额","ip":"127.0.0.1","latency":0,"user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36 Edg/92.0.902.67","time":"2021-08-10T23:51:47+08:00","message":"Request"}

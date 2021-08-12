@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+package base.common;
+
+option go_package = "com.youyu.api/app/rpc/proto_files";
+
+service MysqlApi {
+  rpc addArticle(Article) returns (Errors) {};
+  rpc getArticle(getArticle_request) returns (Article) {};
+  rpc updateArticle(Article) returns (Errors) {}
+  rpc delArticle(getArticle_request) returns (Errors) {}
+  rpc getArticleList(ArticleOptions) returns (Article_Response) {};
+
+//  获取文章热度点赞的选项
+  rpc getArticleStatistics(getArticle_request) returns (ArticleStatistics) {};
+  rpc addArticleStatisticsFabulous(getArticle_request) returns (Errors) {};
+  rpc addArticleStatisticsHot(getArticle_request) returns (Errors) {};
+  rpc addArticleStatisticsCommentNum(getArticle_request) returns (Errors) {};
+  // 删除文章点赞的接口
+  rpc delArticleStatisticsFabulous(getArticle_request) returns (Errors) {}
+
+//  广告rpc接口
+  rpc  addAdvertisement(advertisement) returns (Errors) {}
+  rpc  getAdvertisement(advertisement_request) returns (advertisement){}
+  rpc  updateAdvertisement(advertisement) returns (Errors) {}
+  rpc  delAdvertisement(advertisement_request) returns(Errors) {}
+  rpc  getAdvertisementList(ArticleOptions) returns (advertisement_response);
+}
+
+message null {}
+
+message Article_Response {
+  repeated ArticleLinkTab articles = 1;
+}
+
+message getArticle_request{
+  string article_id = 1;
+}
+
+
+message Article {
+  string article_id = 1;
+  string article_abstract = 2;
+  string article_content = 3;
+  string article_title = 4;
+  repeated string article_tag = 5;
+  int64 uid = 6;
+  int64 article_create_time = 7;
+  int64 article_update_time = 8;
+}
+
+// 获取文章列表的选项
+message ArticleOptions {
+  string type = 1;
+  string order = 2;
+  int32 page = 3;
+  int32 pageNum = 4;
+}
+
+// 获取广告列表的选项
+message AdvertisementOptions {
+  string order = 2;
+  int32 page = 3;
+  int32 pageNum = 4;
+}
+
+message ArticleStatistics {
+  string article_id = 1;
+  int32 article_fabulous = 2;
+  int32 article_hot = 3;
+  int32 article_comment_num = 4;
+}
+
+message ArticleLinkTab {
+  string article_id = 1;
+  string article_abstract = 2;
+  string article_title = 4;
+  repeated string article_tag = 5;
+  int64 uid = 6;
+  int64 article_create_time = 7;
+  int64 article_update_time = 8;
+  int32 article_fabulous = 9;
+  int32 article_hot = 10;
+  int32 article_comment_num = 11;
+}
+
+message Errors {
+  int32 http_code = 1;
+  int32 code = 2;
+  string message = 3;
+}
+
+message advertisement_request {
+  int32 advertisement_id = 1;
+}
+
+message advertisement_response {
+  repeated advertisement advertisementList = 1;
+}
+
+message advertisement{
+  int32 advertisement_id = 1;
+  int32 advertisement_type = 2;
+  string advertisement_link = 3;
+  int32 advertisement_weight = 4;
+  string advertisement_body = 5;
+  string advertisement_owner = 6;
+}
