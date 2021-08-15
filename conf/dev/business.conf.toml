@@ -1,0 +1,3 @@
+[cent_rpc_server]
+    ip = "127.0.0.1"
+    port = "5001"
