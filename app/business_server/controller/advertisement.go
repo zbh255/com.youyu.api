@@ -20,10 +20,9 @@ type Advertisement struct {
 	advertisementJson *rpc.Advertisement
 }
 
-
 func (a *Advertisement) GetAdvertisement(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Query("advertisement_id"))
-	client,conn := GetRpcServer()
+	client, conn := GetRpcServer()
 	defer conn.Close()
 	result, err := client.GetAdvertisement(context.Background(), &rpc.AdvertisementRequest{AdvertisementId: int32(id)})
 	// 查看结果是否为0
@@ -96,7 +95,7 @@ func (a *Advertisement) UpdateAdvertisement(c *gin.Context) {
 	}
 	client, conn := GetRpcServer()
 	defer conn.Close()
-	_, err = client.UpdateAdvertisement(context.Background(),a.advertisementJson)
+	_, err = client.UpdateAdvertisement(context.Background(), a.advertisementJson)
 	if err != nil {
 		c.JSON(errors.ErrDatabase.HttpCode, gin.H{
 			"code":    errors.ErrDatabase.Code,
@@ -115,7 +114,7 @@ func (a *Advertisement) UpdateAdvertisement(c *gin.Context) {
 
 func (a *Advertisement) DelAdvertisement(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Query("advertisement_id"))
-	client,conn := GetRpcServer()
+	client, conn := GetRpcServer()
 	defer conn.Close()
 	_, err := client.DelAdvertisement(context.Background(), &rpc.AdvertisementRequest{AdvertisementId: int32(id)})
 	if err != nil {

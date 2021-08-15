@@ -48,9 +48,9 @@ func (s *MysqlApiServer) GetArticleList(ctx context.Context, null *rpc.ArticleOp
 	if err != nil {
 		return nil, err
 	}
-	response := &rpc.Article_Response{Articles: make([]*rpc.ArticleLinkTab,0)}
+	response := &rpc.Article_Response{Articles: make([]*rpc.ArticleLinkTab, 0)}
 	for k := range results {
-		response.Articles = append(response.Articles,&rpc.ArticleLinkTab{
+		response.Articles = append(response.Articles, &rpc.ArticleLinkTab{
 			ArticleId:         results[k].Id,
 			ArticleAbstract:   results[k].Abstract,
 			ArticleTitle:      results[k].Title,
@@ -63,7 +63,7 @@ func (s *MysqlApiServer) GetArticleList(ctx context.Context, null *rpc.ArticleOp
 			ArticleCommentNum: results[k].CommentNum,
 		})
 	}
-	return response,nil
+	return response, nil
 }
 
 // TODO:Tag类型的问题未解决
@@ -184,9 +184,9 @@ func (s *MysqlApiServer) GetAdvertisementList(ctx context.Context, null *rpc.Art
 	if err != nil {
 		return nil, err
 	}
-	response := &rpc.AdvertisementResponse{AdvertisementList: make([]*rpc.Advertisement,0)}
+	response := &rpc.AdvertisementResponse{AdvertisementList: make([]*rpc.Advertisement, 0)}
 	for k := range results {
-		response.AdvertisementList = append(response.AdvertisementList,&rpc.Advertisement{
+		response.AdvertisementList = append(response.AdvertisementList, &rpc.Advertisement{
 			AdvertisementId:     results[k].Id,
 			AdvertisementType:   results[k].Type,
 			AdvertisementLink:   results[k].Link,
@@ -195,7 +195,7 @@ func (s *MysqlApiServer) GetAdvertisementList(ctx context.Context, null *rpc.Art
 			AdvertisementOwner:  results[k].Owner,
 		})
 	}
-	return response,nil
+	return response, nil
 }
 
 func (s *MysqlApiServer) UpdateArticle(ctx context.Context, article *rpc.Article) (*rpc.Errors, error) {

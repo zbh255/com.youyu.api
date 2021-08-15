@@ -3,4 +3,102 @@ hello world![104 101 108 108 111 32 119 111 114 108 100 33 91 49 48 52 32 49 48 
 hello world!hello world!hello world!hello world!
 hello world!
 chanWriteString[]FAIL
-hello world
+hello world[GIN-debug] POST   /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.AddArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.GetArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/base                  --> com.youyu.api/app/business_server/controller.BaseApi.InitDirection-fm (2 handlers)
+[GIN-debug] PUT    /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.SetArticle-fm (2 handlers)
+[GIN-debug] DELETE /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.DelArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.GetArticleStatistics-fm (2 handlers)
+[GIN-debug] PUT    /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.Options-fm (2 handlers)
+[GIN-debug] DELETE /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.ReduceArticleStatisticsFabulous-fm (2 handlers)
+[GIN-debug] GET    /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.GetAdvertisement-fm (2 handlers)
+[GIN-debug] POST   /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.AddAdvertisement-fm (2 handlers)
+[GIN-debug] PUT    /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.UpdateAdvertisement-fm (2 handlers)
+[GIN-debug] DELETE /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.DelAdvertisement-fm (2 handlers)
+[GIN-debug] Listening and serving HTTP on 127.0.0.1:8080
+[GIN-debug] POST   /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.AddArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.GetArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/base                  --> com.youyu.api/app/business_server/controller.BaseApi.InitDirection-fm (2 handlers)
+[GIN-debug] PUT    /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.SetArticle-fm (2 handlers)
+[GIN-debug] DELETE /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.DelArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.GetArticleStatistics-fm (2 handlers)
+[GIN-debug] PUT    /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.Options-fm (2 handlers)
+[GIN-debug] DELETE /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.ReduceArticleStatisticsFabulous-fm (2 handlers)
+[GIN-debug] GET    /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.GetAdvertisement-fm (2 handlers)
+[GIN-debug] POST   /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.AddAdvertisement-fm (2 handlers)
+[GIN-debug] PUT    /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.UpdateAdvertisement-fm (2 handlers)
+[GIN-debug] DELETE /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.DelAdvertisement-fm (2 handlers)
+[GIN-debug] Listening and serving HTTP on 127.0.0.1:8080
+[GIN-debug] POST   /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.AddArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.GetArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/base                  --> com.youyu.api/app/business_server/controller.BaseApi.InitDirection-fm (2 handlers)
+[GIN-debug] PUT    /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.SetArticle-fm (2 handlers)
+[GIN-debug] DELETE /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.DelArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.GetArticleStatistics-fm (2 handlers)
+[GIN-debug] PUT    /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.Options-fm (2 handlers)
+[GIN-debug] DELETE /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.ReduceArticleStatisticsFabulous-fm (2 handlers)
+[GIN-debug] GET    /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.GetAdvertisement-fm (2 handlers)
+[GIN-debug] POST   /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.AddAdvertisement-fm (2 handlers)
+[GIN-debug] PUT    /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.UpdateAdvertisement-fm (2 handlers)
+[GIN-debug] DELETE /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.DelAdvertisement-fm (2 handlers)
+[GIN-debug] Listening and serving HTTP on 127.0.0.1:8080
+{"level":"info","status":200,"method":"GET","path":"/v1/base","ip":"127.0.0.1","latency":12.873,"user_agent":"ApiPOST Runtime +https://www.apipost.cn","time":"2021-08-15T16:59:53+08:00","message":"Request"}
+[GIN-debug] POST   /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.AddArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.GetArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/base                  --> com.youyu.api/app/business_server/controller.BaseApi.InitDirection-fm (2 handlers)
+[GIN-debug] PUT    /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.SetArticle-fm (2 handlers)
+[GIN-debug] DELETE /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.DelArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.GetArticleStatistics-fm (2 handlers)
+[GIN-debug] PUT    /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.Options-fm (2 handlers)
+[GIN-debug] DELETE /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.ReduceArticleStatisticsFabulous-fm (2 handlers)
+[GIN-debug] GET    /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.GetAdvertisement-fm (2 handlers)
+[GIN-debug] POST   /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.AddAdvertisement-fm (2 handlers)
+[GIN-debug] PUT    /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.UpdateAdvertisement-fm (2 handlers)
+[GIN-debug] DELETE /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.DelAdvertisement-fm (2 handlers)
+[GIN-debug] Listening and serving HTTP on 127.0.0.1:8080
+{"level":"info","status":200,"method":"GET","path":"/v1/base","ip":"127.0.0.1","latency":353.6755,"user_agent":"ApiPOST Runtime +https://www.apipost.cn","time":"2021-08-15T20:06:53+08:00","message":"Request"}
+{"level":"error","status":500,"method":"GET","path":"/v1/advertisement","ip":"127.0.0.1","latency":0,"user_agent":"ApiPOST Runtime +https://www.apipost.cn","time":"2021-08-15T20:07:07+08:00","message":"Request"}
+{"level":"error","status":500,"method":"GET","path":"/v1/advertisement","ip":"127.0.0.1","latency":0,"user_agent":"ApiPOST Runtime +https://www.apipost.cn","time":"2021-08-15T20:07:08+08:00","message":"Request"}
+{"level":"error","status":500,"method":"POST","path":"/v1/advertisement","ip":"127.0.0.1","latency":0,"user_agent":"ApiPOST Runtime +https://www.apipost.cn","time":"2021-08-15T20:07:15+08:00","message":"Request"}
+[GIN-debug] POST   /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.AddArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.GetArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/base                  --> com.youyu.api/app/business_server/controller.BaseApi.InitDirection-fm (2 handlers)
+[GIN-debug] PUT    /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.SetArticle-fm (2 handlers)
+[GIN-debug] DELETE /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.DelArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.GetArticleStatistics-fm (2 handlers)
+[GIN-debug] PUT    /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.Options-fm (2 handlers)
+[GIN-debug] DELETE /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.ReduceArticleStatisticsFabulous-fm (2 handlers)
+[GIN-debug] GET    /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.GetAdvertisement-fm (2 handlers)
+[GIN-debug] POST   /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.AddAdvertisement-fm (2 handlers)
+[GIN-debug] PUT    /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.UpdateAdvertisement-fm (2 handlers)
+[GIN-debug] DELETE /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.DelAdvertisement-fm (2 handlers)
+[GIN-debug] Listening and serving HTTP on 127.0.0.1:8080
+{"level":"info","status":200,"method":"GET","path":"/v1/base","ip":"127.0.0.1","latency":114.6268,"user_agent":"ApiPOST Runtime +https://www.apipost.cn","time":"2021-08-15T20:08:34+08:00","message":"Request"}
+[GIN-debug] POST   /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.AddArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.GetArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/base                  --> com.youyu.api/app/business_server/controller.BaseApi.InitDirection-fm (2 handlers)
+[GIN-debug] PUT    /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.SetArticle-fm (2 handlers)
+[GIN-debug] DELETE /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.DelArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.GetArticleStatistics-fm (2 handlers)
+[GIN-debug] PUT    /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.Options-fm (2 handlers)
+[GIN-debug] DELETE /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.ReduceArticleStatisticsFabulous-fm (2 handlers)
+[GIN-debug] GET    /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.GetAdvertisement-fm (2 handlers)
+[GIN-debug] POST   /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.AddAdvertisement-fm (2 handlers)
+[GIN-debug] PUT    /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.UpdateAdvertisement-fm (2 handlers)
+[GIN-debug] DELETE /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.DelAdvertisement-fm (2 handlers)
+[GIN-debug] Listening and serving HTTP on 127.0.0.1:8080
+{"level":"info","status":200,"method":"GET","path":"/v1/base","ip":"127.0.0.1","latency":255.2886,"user_agent":"ApiPOST Runtime +https://www.apipost.cn","time":"2021-08-15T20:39:59+08:00","message":"Request"}
+[GIN-debug] POST   /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.AddArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.GetArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/base                  --> com.youyu.api/app/business_server/controller.BaseApi.InitDirection-fm (2 handlers)
+[GIN-debug] PUT    /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.SetArticle-fm (2 handlers)
+[GIN-debug] DELETE /v1/article               --> com.youyu.api/app/business_server/controller.ArticleApi.DelArticle-fm (2 handlers)
+[GIN-debug] GET    /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.GetArticleStatistics-fm (2 handlers)
+[GIN-debug] PUT    /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.Options-fm (2 handlers)
+[GIN-debug] DELETE /v1/article_statistics    --> com.youyu.api/app/business_server/controller.ArticleApi.ReduceArticleStatisticsFabulous-fm (2 handlers)
+[GIN-debug] GET    /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.GetAdvertisement-fm (2 handlers)
+[GIN-debug] POST   /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.AddAdvertisement-fm (2 handlers)
+[GIN-debug] PUT    /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.UpdateAdvertisement-fm (2 handlers)
+[GIN-debug] DELETE /v1/advertisement         --> com.youyu.api/app/business_server/controller.AdvertisementApi.DelAdvertisement-fm (2 handlers)
+[GIN-debug] Listening and serving HTTP on 127.0.0.1:8080
+{"level":"info","status":200,"method":"GET","path":"/v1/base","ip":"127.0.0.1","latency":179.6699,"user_agent":"ApiPOST Runtime +https://www.apipost.cn","time":"2021-08-15T20:40:20+08:00","message":"Request"}

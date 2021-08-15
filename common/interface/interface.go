@@ -7,8 +7,10 @@ package _interface
 // 从Rpc配置中心获取配置文件的统一接口
 
 type CentConfig interface {
-	GetConfig() ([]byte,error)
+	GetConfig() ([]byte, error)
 	UpdateConfig([]byte) error
 }
 
 // 连接云端的统一接口
+type Cloud interface {
+}

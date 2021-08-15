@@ -5,11 +5,10 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-
 // 实现io.Write接口，用于向grpc server传递数据
 type IOW struct {
 	CentRpcPushStream rpc.CentApi_PushLogStreamClient
-	FileName string
+	FileName          string
 }
 
 func (i *IOW) Write(p []byte) (int, error) {
@@ -22,11 +21,9 @@ func (i *IOW) Write(p []byte) (int, error) {
 
 // 测试方法
 type IOWTEST struct {
-
 }
 
 func (i *IOWTEST) Write(p []byte) (int, error) {
 	log.Print(string(p))
 	return 0, nil
 }
-

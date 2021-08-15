@@ -33,8 +33,12 @@ endif
 # path
 Main_APP_CMD=./cmd/main_server
 DataRpc_APP_CMD=./cmd/rpc_cmd
-CentRpc_APP_CMD=./cmd/rpc_cent
+CentRpc_APP_CMD=./cmd/rpc_cent_cmd
 project_config_path=./conf/$(config_version)
+project_script_path=./script
+project_docker_script_path=$(project_script_path)/docker
+project_mysql_script_path=$(project_script_path)/mysql
+
 # 项目配置文件的所在
 config_path=$(build_path)/conf
 build_path_cache=$(build_path)/cache
@@ -44,6 +48,7 @@ build_path_log=$(build_path)/log
 
 # file
 config_path_file=app.conf.toml
+business_conf_path_file=business.conf.toml
 build_path_log_data=data_rpc.log
 build_path_log_gin=gin.log
 build_path_log_cent=cent_rpc.log
@@ -64,17 +69,21 @@ create:
 	mkdir -p $(config_path)
 	mkdir -p $(build_path_dir)
 	mkdir -p $(build_path_log)
+	mkdir -p $(build_path)/script/mysql
 	# 创建文件
 	touch $(build_path_log)/$(build_path_log_data)
 	touch $(build_path_log)/$(build_path_log_gin)
 	touch $(build_path_log)/$(build_path_log_cent)
 	touch $(build_path_dir)/$(build_path_dir_info)
-	# 拷贝项目的文件
-	cp $(project_config_path)/$(config_path_file) $(config_path)/$(config_path_file)
+	# 拷贝项目的配置文件
+	cp $(project_config_path)/* $(config_path)
+	# 拷贝项目运行所需要的脚本
+	cp $(project_docker_script_path)/* $(build_path)
+	cp -r $(project_mysql_script_path) $(build_path)/script/mysql
 
 clean:
 	echo 正在清理编译目录:$(build_path)
-	rm -f $(build_path)
+	rm -rf $(build_path)
 
 build-darwin:
 	@echo $(BUPS_MODE)
@@ -107,6 +116,7 @@ build-linux:
 	mv $(CentRpc_APP_CMD)/$(BINARY_CENT_NAME) $(build_path)
 
 
+# v0.1之后废弃改用docker-compose管理容器
 build-docker:
 	# 编译business docker镜像
 	docker build -f $(build_docker_business) -t $(BINARY_MAIN_NAME):v$(APP_VERSION) .

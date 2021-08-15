@@ -2,7 +2,7 @@ package model
 
 import (
 	"com.youyu.api/common/database"
-	"errors"
+	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"time"
 )
@@ -55,8 +55,14 @@ type ArticleDataLinkTable struct {
 	CommentNum int32     `gorm:"column:article_comment_num"`
 }
 
+// 数据库接口
+var DB = database.DataBase(&database.Mysql{})
+
 func (self *ArticleStatistics) AddFabulous(id string) error {
-	db := database.GetMysqlConnect()
+	db, err := DB.GetConnect()
+	if err != nil {
+		return errors.Wrap(err, "")
+	}
 	if db == nil {
 		return errors.New("mysql server connection failed")
 	}
@@ -75,7 +81,10 @@ func (self *ArticleStatistics) AddFabulous(id string) error {
 
 // 点赞-1
 func (self *ArticleStatistics) ReduceFabulous(id string) error {
-	db := database.GetMysqlConnect()
+	db, err := DB.GetConnect()
+	if err != nil {
+		return errors.Wrap(err, "")
+	}
 	if db == nil {
 		return errors.New("mysql server connection failed")
 	}
@@ -94,7 +103,10 @@ func (self *ArticleStatistics) ReduceFabulous(id string) error {
 
 // 获得存储文章点赞等数据的表
 func (self *ArticleStatistics) GetArticleStatistics(id string) (*ArticleStatistics, error) {
-	db := database.GetMysqlConnect()
+	db, err := DB.GetConnect()
+	if err != nil {
+		return nil, err
+	}
 	if db == nil {
 		return nil, errors.New("mysql server connection failed")
 	}
@@ -109,9 +121,9 @@ func (self *ArticleStatistics) GetArticleStatistics(id string) (*ArticleStatisti
 
 // 错误类型为数据库连接错误和查询错误
 func (self *ArticleStatistics) AddHot(id string) error {
-	db := database.GetMysqlConnect()
-	if db == nil {
-		return errors.New("mysql server connection failed")
+	db, err := DB.GetConnect()
+	if err != nil {
+		return errors.Wrap(err, "")
 	}
 	result := db.Where("article_id = ?", id).First(self)
 	// 判断查找到的记录
@@ -127,9 +139,9 @@ func (self *ArticleStatistics) AddHot(id string) error {
 }
 
 func (self *ArticleStatistics) AddCommentNum(id string) error {
-	db := database.GetMysqlConnect()
-	if db == nil {
-		return errors.New("mysql server connection failed")
+	db, err := DB.GetConnect()
+	if err != nil {
+		return errors.Wrap(err, "")
 	}
 	result := db.Where("article_id = ?", id).First(self)
 	// 判断查找到的记录
@@ -145,9 +157,9 @@ func (self *ArticleStatistics) AddCommentNum(id string) error {
 }
 
 func (self *ArticleStatistics) AddSelf(statistics *ArticleStatistics) error {
-	db := database.GetMysqlConnect()
-	if db == nil {
-		return errors.New("mysql server connection failed")
+	db, err := DB.GetConnect()
+	if err != nil {
+		return errors.Wrap(err, "")
 	}
 	result := db.Create(statistics)
 	if result.Error != nil {
@@ -158,9 +170,9 @@ func (self *ArticleStatistics) AddSelf(statistics *ArticleStatistics) error {
 }
 
 func (self *Article) AddArticle(article *Article) error {
-	db := database.GetMysqlConnect()
-	if db == nil {
-		return errors.New("mysql server connection failed")
+	db, err := DB.GetConnect()
+	if err != nil {
+		return errors.Wrap(err, "")
 	}
 	// 查找文章是否存在
 	result := db.Where("article_id = ?", article.Id).First(self)
@@ -184,11 +196,11 @@ func (self *Article) AddArticle(article *Article) error {
 }
 
 func (self *Article) DelArticle(id string) error {
-	db := database.GetMysqlConnect()
-	if db == nil {
-		return errors.New("mysql server connection failed")
+	db, err := DB.GetConnect()
+	if err != nil {
+		return errors.Wrap(err, "")
 	}
-	err := db.Transaction(func(tx *gorm.DB) error {
+	err = db.Transaction(func(tx *gorm.DB) error {
 		// 根据主键删除数据
 		// 因为设置的外键，所以存储点赞等信息的也会自动删除
 		self.Id = id
@@ -202,9 +214,9 @@ func (self *Article) DelArticle(id string) error {
 
 // 获取文章的数据
 func (self *Article) GetArticle(id string) (*Article, error) {
-	db := database.GetMysqlConnect()
-	if db == nil {
-		return nil, errors.New("mysql server connection failed")
+	db, err := DB.GetConnect()
+	if err != nil {
+		return nil, errors.Wrap(err, "")
 	}
 	result := db.Where("article_id = ?", id).First(self)
 	// 判断查找到的记录
@@ -216,12 +228,12 @@ func (self *Article) GetArticle(id string) (*Article, error) {
 }
 
 func (self *Article) SetArticle(article *Article) error {
-	db := database.GetMysqlConnect()
-	if db == nil {
-		return errors.New("mysql server connection failed")
+	db, err := DB.GetConnect()
+	if err != nil {
+		return errors.Wrap(err, "")
 	}
 
-	err := db.Transaction(func(tx *gorm.DB) error {
+	err = db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("article_id = ?", article.Id).First(self).Error; err != nil {
 			return err
 		}
@@ -243,12 +255,12 @@ func (self *Article) SetArticle(article *Article) error {
 func (self *Article) GetArticles(op *SelectOptions) ([]*ArticleDataLinkTable, error) {
 	// 分页选项不能为0
 	if op.Page == 0 || op.PageNum == 0 {
-		return nil,errors.New("page and pageNum cannot be zero")
+		return nil, errors.New("page and pageNum cannot be zero")
 	}
 	articleLinkS := make([]*ArticleDataLinkTable, 0)
-	db := database.GetMysqlConnect()
-	if db == nil {
-		return nil, errors.New("mysql server connection failed")
+	db, err := DB.GetConnect()
+	if err != nil {
+		return nil, errors.Wrap(err, "")
 	}
 	// 排序规则,默认为热度
 	order := ""
@@ -270,16 +282,16 @@ func (self *Article) GetArticles(op *SelectOptions) ([]*ArticleDataLinkTable, er
 	}
 	articleLinkField := "article.article_id,article.article_abstract,article.article_content,article.article_tag,article.uid,article.article_create_time,article.article_update_time"
 	articleStatisticsLinkField := "article_statistics.article_fabulous,article_statistics.article_hot,article_statistics.article_comment_num"
-	if err := db.Model(self).Limit(int(op.PageNum)).Offset(int(op.PageNum * op.Page - op.PageNum)).Select(articleLinkField + "," + articleStatisticsLinkField).Joins("join article_statistics on article.article_id = article_statistics.article_id").Order(order + " " + op.Type).Scan(&articleLinkS).Error; err != nil {
+	if err := db.Model(self).Limit(int(op.PageNum)).Offset(int(op.PageNum*op.Page - op.PageNum)).Select(articleLinkField + "," + articleStatisticsLinkField).Joins("join article_statistics on article.article_id = article_statistics.article_id").Order(order + " " + op.Type).Scan(&articleLinkS).Error; err != nil {
 		return nil, err
 	}
 	return articleLinkS, nil
 }
 
 func (self *Advertisement) AddAdvertisement(advertisement *Advertisement) error {
-	db := database.GetMysqlConnect()
-	if db == nil {
-		return errors.New("mysql server connection failed")
+	db, err := DB.GetConnect()
+	if err != nil {
+		return errors.Wrap(err, "")
 	}
 	result := db.Create(advertisement)
 	if result.Error != nil {
@@ -291,9 +303,9 @@ func (self *Advertisement) AddAdvertisement(advertisement *Advertisement) error 
 
 // 获得广告数据
 func (self *Advertisement) GetAdvertisement(id int32) (*Advertisement, error) {
-	db := database.GetMysqlConnect()
-	if db == nil {
-		return nil, errors.New("mysql server connection failed")
+	db, err := DB.GetConnect()
+	if err != nil {
+		return nil, errors.Wrap(err, "")
 	}
 	result := db.Where("advertisement_id = ?", id).First(self)
 	// 找到结果
@@ -305,15 +317,15 @@ func (self *Advertisement) GetAdvertisement(id int32) (*Advertisement, error) {
 }
 
 // 自定义查询广告列表
-func (self *Advertisement) GetAdvertisements(op *SelectOptions) ([]*Advertisement,error) {
+func (self *Advertisement) GetAdvertisements(op *SelectOptions) ([]*Advertisement, error) {
 	// 分页选项不能为0
 	if op.Page == 0 || op.PageNum == 0 {
-		return nil,errors.New("page and pageNum cannot be zero")
+		return nil, errors.New("page and pageNum cannot be zero")
 	}
 	advertisements := make([]*Advertisement, 0)
-	db := database.GetMysqlConnect()
-	if db == nil {
-		return nil, errors.New("mysql server connection failed")
+	db, err := DB.GetConnect()
+	if err != nil {
+		return nil, errors.Wrap(err, "")
 	}
 	switch op.Type {
 	case "asc":
@@ -321,19 +333,20 @@ func (self *Advertisement) GetAdvertisements(op *SelectOptions) ([]*Advertisemen
 	default:
 		op.Type = "desc"
 	}
-	err := db.Model(self).Limit(int(op.PageNum)).Offset(int(op.PageNum*op.Page - op.PageNum)).Order("advertisement_weight" + " " + op.Type).Find(&advertisements).Error
+	err = db.Model(self).Limit(int(op.PageNum)).Offset(int(op.PageNum*op.Page - op.PageNum)).Order("advertisement_weight" + " " + op.Type).Find(&advertisements).Error
 	if err != nil {
 		return nil, err
 	}
-	return advertisements,nil
+	return advertisements, nil
 }
 
 func (self *Advertisement) DelAdvertisement(id int32) error {
-	db := database.GetMysqlConnect()
-	if db == nil {
-		return errors.New("mysql server connection failed")
+	//"mysql server connection failed"
+	db, err := DB.GetConnect()
+	if err != nil {
+		return errors.Wrap(err, "")
 	}
-	err := db.Transaction(func(tx *gorm.DB) error {
+	err = db.Transaction(func(tx *gorm.DB) error {
 		// 根据主键删除数据
 		self.Id = id
 		if err := tx.Delete(self).Error; err != nil {
@@ -345,11 +358,11 @@ func (self *Advertisement) DelAdvertisement(id int32) error {
 }
 
 func (self *Advertisement) SetAdvertisement(advertisement *Advertisement) error {
-	db := database.GetMysqlConnect()
-	if db == nil {
-		return errors.New("mysql server connection failed")
+	db, err := DB.GetConnect()
+	if err != nil {
+		return errors.Wrap(err, "")
 	}
-	err := db.Transaction(func(tx *gorm.DB) error {
+	err = db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(self).Where("advertisement_id = ?", advertisement.Id).Updates(advertisement).Error; err != nil {
 			return err
 		}

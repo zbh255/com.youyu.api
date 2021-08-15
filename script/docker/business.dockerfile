@@ -4,8 +4,8 @@ FROM alpine
 ENV GIN_MODE=release
 
 # 复制需要的文件
-COPY ./build_release/conf/business.conf.toml /app/conf/business.conf.toml
-COPY ./build_release/business /app
+COPY ./conf/business.conf.toml /app/conf/business.conf.toml
+COPY ./business /app
 # 容器的工作目录
 WORKDIR ./app
 

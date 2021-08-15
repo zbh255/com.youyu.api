@@ -18,7 +18,7 @@ func InitRouter(r *gin.Engine) {
 	v1.GET("/article", ControllerArticle.GetArticle)
 	// 返回一些用于渲染页面的基本数据
 	// 返回列表的请求参数: ?position=index&type=list&page=3&page_num=4&order=hot&orderType=desc
-	v1.GET("/base",ControllerBase.InitDirection)
+	v1.GET("/base", ControllerBase.InitDirection)
 	// ?article_id=0
 	v1.PUT("/article", ControllerArticle.SetArticle)
 	// ?article_id=0
@@ -32,10 +32,10 @@ func InitRouter(r *gin.Engine) {
 	v1.DELETE("/article_statistics", ControllerArticle.ReduceArticleStatisticsFabulous)
 
 	// ?advertisement_id=0
-	v1.GET("/advertisement",ControllerAdvertisement.GetAdvertisement)
+	v1.GET("/advertisement", ControllerAdvertisement.GetAdvertisement)
 
-	v1.POST("/advertisement",ControllerAdvertisement.AddAdvertisement)
-	v1.PUT("/advertisement",ControllerAdvertisement.UpdateAdvertisement)
+	v1.POST("/advertisement", ControllerAdvertisement.AddAdvertisement)
+	v1.PUT("/advertisement", ControllerAdvertisement.UpdateAdvertisement)
 	// ?advertisement_id=0
-	v1.DELETE("/advertisement",ControllerAdvertisement.DelAdvertisement)
+	v1.DELETE("/advertisement", ControllerAdvertisement.DelAdvertisement)
 }

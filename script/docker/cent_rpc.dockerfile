@@ -1,9 +1,9 @@
 FROM alpine
 
 # 复制需要的文件
-COPY ./build_release/conf /app/conf
-COPY ./build_release/log /app/log
-COPY ./build_release/cent_rpc /app
+COPY ./conf /app/conf
+COPY ./log /app/log
+COPY ./cent_rpc /app
 
 # 容器的工作目录
 WORKDIR ./app
