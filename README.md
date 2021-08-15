@@ -41,13 +41,70 @@ make build-linux
 make build-docker
 ```
 
-> 编译`docker`镜像
+> ~~编译`docker`镜像~~ `该Target已经废弃，不建议使用`
+
+---
+
+### run
+
+> 执行编译命令成功之后的文件夹名为`build_release`
+>
+> `build_release`的目录结构为
+
+```shell
+.
+|-- business
+|-- business.dockerfile
+|-- cache
+|   `-- rsa
+|-- cent_rpc
+|-- cent_rpc.dockerfile
+|-- conf
+|   |-- app.conf.toml
+|   `-- business.conf.toml
+|-- data_rpc
+|-- data_rpc.dockerfile
+|-- dir
+|-- docker-compose.yml
+|-- log
+|   |-- cent_rpc.log
+|   |-- data_rpc.log
+|   `-- gin.log
+`-- script
+    `-- mysql
+        `-- mysql
+            `-- youyu.sql
+```
+
+> 部署使用`docker-compose`管理容器
+
+```dockerfile
+docker-compose build
+```
+
+> docker-compose run
+
+```sh
+docker-compose up -d
+```
+
+> 查看容器运行情况
+
+```sh
+docker ps
+```
 
 ---
 
 ### conf
 
+> 默认将容器内的配置目录`app/conf`映射到宿主机下的`./conf`，所以在`./conf`下修改配置即可
+
 > 本程序的配置使用的是Toml格式,关于Tmol的语法
+
+
+
+---
 
 ### struct
 
