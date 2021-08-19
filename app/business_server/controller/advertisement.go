@@ -3,6 +3,7 @@ package controller
 import (
 	rpc "com.youyu.api/app/rpc/proto_files"
 	"com.youyu.api/common/errors"
+	"com.youyu.api/common/log"
 	"context"
 	errs "errors"
 	"github.com/gin-gonic/gin"
@@ -22,8 +23,16 @@ type Advertisement struct {
 
 func (a *Advertisement) GetAdvertisement(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Query("advertisement_id"))
-	client, conn := GetRpcServer()
-	defer conn.Close()
+	lis,err := ConnectAndConf.ConnPool.Get()
+	client, _,err := GetRpcServer(lis,err)
+	if err != nil {
+		c.JSON(errors.ErrInternalServer.HttpCode,gin.H{
+			"code": errors.ErrInternalServer.Code,
+			"message": errors.ErrInternalServer.Message,
+		})
+		log.Logger.Err(err).Timestamp()
+		return
+	}
 	result, err := client.GetAdvertisement(context.Background(), &rpc.AdvertisementRequest{AdvertisementId: int32(id)})
 	// 查看结果是否为0
 	if errs.Is(err, errs.New("the query record is zero")) {
@@ -62,8 +71,16 @@ func (a *Advertisement) AddAdvertisement(c *gin.Context) {
 		})
 		return
 	}
-	client, conn := GetRpcServer()
-	defer conn.Close()
+	lis,err := ConnectAndConf.ConnPool.Get()
+	client, _,err := GetRpcServer(lis,err)
+	if err != nil {
+		c.JSON(errors.ErrInternalServer.HttpCode,gin.H{
+			"code": errors.ErrInternalServer.Code,
+			"message": errors.ErrInternalServer.Message,
+		})
+		log.Logger.Err(err).Timestamp()
+		return
+	}
 	_, err = client.AddAdvertisement(context.Background(), a.advertisementJson)
 	if err != nil {
 		c.JSON(errors.ErrDatabase.HttpCode, gin.H{
@@ -93,8 +110,16 @@ func (a *Advertisement) UpdateAdvertisement(c *gin.Context) {
 		})
 		return
 	}
-	client, conn := GetRpcServer()
-	defer conn.Close()
+	lis,err := ConnectAndConf.ConnPool.Get()
+	client, _,err := GetRpcServer(lis,err)
+	if err != nil {
+		c.JSON(errors.ErrInternalServer.HttpCode,gin.H{
+			"code": errors.ErrInternalServer.Code,
+			"message": errors.ErrInternalServer.Message,
+		})
+		log.Logger.Err(err).Timestamp()
+		return
+	}
 	_, err = client.UpdateAdvertisement(context.Background(), a.advertisementJson)
 	if err != nil {
 		c.JSON(errors.ErrDatabase.HttpCode, gin.H{
@@ -114,9 +139,17 @@ func (a *Advertisement) UpdateAdvertisement(c *gin.Context) {
 
 func (a *Advertisement) DelAdvertisement(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Query("advertisement_id"))
-	client, conn := GetRpcServer()
-	defer conn.Close()
-	_, err := client.DelAdvertisement(context.Background(), &rpc.AdvertisementRequest{AdvertisementId: int32(id)})
+	lis,err := ConnectAndConf.ConnPool.Get()
+	client, _,err := GetRpcServer(lis,err)
+	if err != nil {
+		c.JSON(errors.ErrInternalServer.HttpCode,gin.H{
+			"code": errors.ErrInternalServer.Code,
+			"message": errors.ErrInternalServer.Message,
+		})
+		log.Logger.Err(err).Timestamp()
+		return
+	}
+	_, err = client.DelAdvertisement(context.Background(), &rpc.AdvertisementRequest{AdvertisementId: int32(id)})
 	if err != nil {
 		c.JSON(errors.ErrDatabase.HttpCode, gin.H{
 			"code":    errors.ErrDatabase.Code,

@@ -2,44 +2,71 @@
 version: "3.7"
 services:
   business:
+    container_name: com.YouYu.api.business
     build:
       context: .
       dockerfile: ./business.dockerfile
+    # use link to public ports
+    image: com.youyu.api.business:v0.1.2
     ports:
       - "8080:8080"
       # 先运行中心镜像，获取配置后确保正常运行
     depends_on:
       - cent_rpc
     labels:
-      - "com.YouYu.api.business:v0.1"
+      - com.YouYu.api.Version=0.1.2
+      - com.YouYu.api.Feature=business
     pid: "host"
     volumes:
       - ./conf:/app/conf:ro
+    networks:
+      - front
+      - back
 
 
   data_rpc:
+    container_name: com.YouYu.api.data_rpc
+    image: com.youyu.api.data_rpc:v0.1.2
     build:
       context: .
       dockerfile: ./data_rpc.dockerfile
-    ports:
-      - "5000:5000"
+    # not public link ports
+#    ports:
+#      - "5000:5000"
     # 先运行中心镜像，获取配置后确保正常运行
     depends_on:
       - cent_rpc
     labels:
-      - "com.YouYu.api.data_rpc:v0.1"
+      - com.YouYu.api.Version=0.1.2
+      - com.YouYu.api.Feature=data_rpc
     pid: "host"
     volumes:
       - ./conf:/app/conf:ro
+    networks:
+      - back
 
   cent_rpc:
+    container_name: com.YouYu.api.cent_rpc
+    image: com.youyu.api.cent_rpc:v0.1.2
     build:
       context: .
       dockerfile: ./cent_rpc.dockerfile
-    ports:
-      - "5001:5001"
+    # not link public ports
+#    ports:
+#      - "5001:5001"
     labels:
-      - "com.YouYu.api.cent_rpc:v0.1"
+      - com.YouYu.api.Version=0.1.2
+      - com.YouYu.api.Feature=cent_rpc
     pid: "host"
     volumes:
       - ./conf:/app/conf:rw
+    networks:
+      - back
+
+networks:
+  default:
+    driver: bridge
+  front:
+    driver: bridge
+  back:
+    driver: bridge

@@ -10,7 +10,7 @@ BINARY_MAIN_NAME=business
 BINARY_RPC_NAME=data_rpc
 BINARY_CENT_NAME=cent_rpc
 BUILD=linux
-APP_VERSION=0.1
+APP_VERSION=0.1.2
 
 # 环境变量
 export GIN_MODE=release

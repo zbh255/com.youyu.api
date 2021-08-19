@@ -7,12 +7,14 @@ import (
 	"com.youyu.api/common/config"
 	"com.youyu.api/common/router"
 	"context"
+	"fmt"
 	"github.com/gin-contrib/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/silenceper/pool"
 	"google.golang.org/grpc"
 	"io"
 	"os"
+	"time"
 )
 
 func main() {
@@ -70,16 +72,15 @@ func main() {
 		return conn.Close()
 	}
 	p, err := pool.NewChannelPool(&pool.Config{
-		InitialCap:  5,
-		MaxCap:      20,
-		MaxIdle:     30,
+		InitialCap:  resultAG.Server.Sync.GrpcPollInitCapSize,
+		MaxCap:      resultAG.Server.Sync.GrpcPollMaxCapSize,
+		MaxIdle:     resultAG.Server.Sync.GrpcPollMaxIdleSize,
 		Factory:     Factory,
 		Close:       Close,
-		Ping:        nil,
-		IdleTimeout: 0,
+		IdleTimeout: time.Duration(resultAG.Server.Sync.GrpcPollMaxIdleTimeout) * time.Second,
 	})
 	if err != nil {
-		panic(err)
+		fmt.Println("err=", err)
 	}
 	controller.ConnectAndConf = &controller.ConnectAndConfig{
 		Config:      resultAG,
