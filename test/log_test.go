@@ -2,7 +2,7 @@ package test
 
 import (
 	"com.youyu.api/app/rpc/client"
-	"com.youyu.api/common/path"
+	"com.youyu.api/lib/path"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"

@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"com.youyu.api/common/config"
+	"com.youyu.api/lib/config"
 	"github.com/silenceper/pool"
 )
 

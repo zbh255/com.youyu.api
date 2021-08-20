@@ -1,7 +1,7 @@
 package model
 
 import (
-	"com.youyu.api/common/database"
+	"com.youyu.api/lib/database"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"time"

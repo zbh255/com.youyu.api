@@ -1,7 +1,7 @@
 package config
 
 import (
-	"com.youyu.api/common/path"
+	"com.youyu.api/lib/path"
 	"github.com/BurntSushi/toml"
 	"github.com/pkg/errors"
 	"io"

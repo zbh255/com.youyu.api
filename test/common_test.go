@@ -1,13 +1,13 @@
 package test
 
 import (
+	"com.youyu.api/app/business_server/controller"
 	"com.youyu.api/app/rpc/client"
-	"com.youyu.api/common/config"
+	"com.youyu.api/lib/config"
 	"fmt"
 	"github.com/silenceper/pool"
 	"google.golang.org/grpc"
 	"testing"
-	"com.youyu.api/app/business_server/controller"
 	"time"
 )
 

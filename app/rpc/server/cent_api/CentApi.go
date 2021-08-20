@@ -1,10 +1,10 @@
-package server
+package cent_api
 
 import (
 	rpc "com.youyu.api/app/rpc/proto_files"
-	cf "com.youyu.api/common/config"
-	"com.youyu.api/common/log"
-	"com.youyu.api/common/path"
+	cf "com.youyu.api/lib/config"
+	"com.youyu.api/lib/log"
+	"com.youyu.api/lib/path"
 	"context"
 	"fmt"
 	"io"

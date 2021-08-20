@@ -2,8 +2,8 @@ package controller
 
 import (
 	rpc "com.youyu.api/app/rpc/proto_files"
-	"com.youyu.api/common/errors"
-	"com.youyu.api/common/log"
+	"com.youyu.api/lib/errors"
+	"com.youyu.api/lib/log"
 	"context"
 	errs "errors"
 	"github.com/gin-gonic/gin"
@@ -55,7 +55,7 @@ func (a *Article) AddArticle(c *gin.Context) {
 	client, _,err := GetRpcServer(lis,err)
 	if err != nil {
 		c.JSON(errors.ErrInternalServer.HttpCode,gin.H{
-			"code": errors.ErrInternalServer.Code,
+			"code":    errors.ErrInternalServer.Code,
 			"message": errors.ErrInternalServer.Message,
 		})
 		log.Logger.Err(err).Timestamp()
@@ -94,7 +94,7 @@ func (a *Article) GetArticle(c *gin.Context) {
 	client, _,err := GetRpcServer(lis,err)
 	if err != nil {
 		c.JSON(errors.ErrInternalServer.HttpCode,gin.H{
-			"code": errors.ErrInternalServer.Code,
+			"code":    errors.ErrInternalServer.Code,
 			"message": errors.ErrInternalServer.Message,
 		})
 		log.Logger.Err(err).Timestamp()
@@ -134,7 +134,7 @@ func (a *Article) DelArticle(c *gin.Context) {
 	client, _,err := GetRpcServer(lis,err)
 	if err != nil {
 		c.JSON(errors.ErrInternalServer.HttpCode,gin.H{
-			"code": errors.ErrInternalServer.Code,
+			"code":    errors.ErrInternalServer.Code,
 			"message": errors.ErrInternalServer.Message,
 		})
 		log.Logger.Err(err).Timestamp()
@@ -174,7 +174,7 @@ func (a *Article) SetArticle(c *gin.Context) {
 	client, _,err := GetRpcServer(lis,err)
 	if err != nil {
 		c.JSON(errors.ErrInternalServer.HttpCode,gin.H{
-			"code": errors.ErrInternalServer.Code,
+			"code":    errors.ErrInternalServer.Code,
 			"message": errors.ErrInternalServer.Message,
 		})
 		log.Logger.Err(err).Timestamp()
@@ -218,7 +218,7 @@ func (a *Article) ReduceArticleStatisticsFabulous(c *gin.Context) {
 	client, _,err := GetRpcServer(lis,err)
 	if err != nil {
 		c.JSON(errors.ErrInternalServer.HttpCode,gin.H{
-			"code": errors.ErrInternalServer.Code,
+			"code":    errors.ErrInternalServer.Code,
 			"message": errors.ErrInternalServer.Message,
 		})
 		log.Logger.Err(err).Timestamp()
@@ -250,7 +250,7 @@ func (a *Article) AddArticleStatisticsHot(c *gin.Context) {
 	client, _,err := GetRpcServer(lis,err)
 	if err != nil {
 		c.JSON(errors.ErrInternalServer.HttpCode,gin.H{
-			"code": errors.ErrInternalServer.Code,
+			"code":    errors.ErrInternalServer.Code,
 			"message": errors.ErrInternalServer.Message,
 		})
 		log.Logger.Err(err).Timestamp()
@@ -282,7 +282,7 @@ func (a *Article) AddArticleStatisticsFabulous(c *gin.Context) {
 	client, _,err := GetRpcServer(lis,err)
 	if err != nil {
 		c.JSON(errors.ErrInternalServer.HttpCode,gin.H{
-			"code": errors.ErrInternalServer.Code,
+			"code":    errors.ErrInternalServer.Code,
 			"message": errors.ErrInternalServer.Message,
 		})
 		log.Logger.Err(err).Timestamp()
@@ -313,7 +313,7 @@ func (a *Article) GetArticleStatistics(c *gin.Context) {
 	client, _,err := GetRpcServer(lis,err)
 	if err != nil {
 		c.JSON(errors.ErrInternalServer.HttpCode,gin.H{
-			"code": errors.ErrInternalServer.Code,
+			"code":    errors.ErrInternalServer.Code,
 			"message": errors.ErrInternalServer.Message,
 		})
 		log.Logger.Err(err).Timestamp()

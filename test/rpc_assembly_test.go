@@ -3,8 +3,8 @@ package test
 import (
 	rpc_client "com.youyu.api/app/rpc/client"
 	rpc "com.youyu.api/app/rpc/proto_files"
-	"com.youyu.api/common/config"
-	"com.youyu.api/common/path"
+	"com.youyu.api/lib/config"
+	"com.youyu.api/lib/path"
 	"context"
 	"google.golang.org/grpc"
 	"log"

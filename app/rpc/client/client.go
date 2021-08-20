@@ -2,7 +2,7 @@ package client
 
 import (
 	rpc "com.youyu.api/app/rpc/proto_files"
-	"com.youyu.api/common/config"
+	"com.youyu.api/lib/config"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 )

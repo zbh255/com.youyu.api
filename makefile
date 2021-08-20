@@ -30,6 +30,8 @@ else
 build_path=./build_release
 config_version=pro
 endif
+
+sources := $(wildcard ./app/*)
 # path
 Main_APP_CMD=./cmd/main_server
 DataRpc_APP_CMD=./cmd/rpc_cmd

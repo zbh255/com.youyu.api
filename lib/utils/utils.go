@@ -2,7 +2,7 @@ package utils
 
 import (
 	rpc "com.youyu.api/app/rpc/proto_files"
-	err "com.youyu.api/common/errors"
+	err "com.youyu.api/lib/errors"
 )
 
 // 从go文件中定义的errors转换为grpc中自定义的errors

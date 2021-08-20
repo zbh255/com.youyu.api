@@ -4,8 +4,8 @@ services:
   business:
     container_name: com.YouYu.api.business
     build:
-      context: .
-      dockerfile: ./business.dockerfile
+      context: ""
+      dockerfile: business.dockerfile
     # use link to public ports
     image: com.youyu.api.business:v0.1.2
     ports:
@@ -28,8 +28,8 @@ services:
     container_name: com.YouYu.api.data_rpc
     image: com.youyu.api.data_rpc:v0.1.2
     build:
-      context: .
-      dockerfile: ./data_rpc.dockerfile
+      context: ""
+      dockerfile: data_rpc.dockerfile
     # not public link ports
 #    ports:
 #      - "5000:5000"
@@ -49,8 +49,8 @@ services:
     container_name: com.YouYu.api.cent_rpc
     image: com.youyu.api.cent_rpc:v0.1.2
     build:
-      context: .
-      dockerfile: ./cent_rpc.dockerfile
+      context: ""
+      dockerfile: cent_rpc.dockerfile
     # not link public ports
 #    ports:
 #      - "5001:5001"

@@ -1,10 +1,10 @@
-package server
+package db_api
 
 import (
 	"com.youyu.api/app/rpc/model"
 	rpc "com.youyu.api/app/rpc/proto_files"
-	"com.youyu.api/common/errors"
-	"com.youyu.api/common/utils"
+	"com.youyu.api/lib/errors"
+	"com.youyu.api/lib/utils"
 	"context"
 	"time"
 )

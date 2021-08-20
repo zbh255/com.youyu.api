@@ -2,8 +2,8 @@ package controller
 
 import (
 	rpc "com.youyu.api/app/rpc/proto_files"
-	"com.youyu.api/common/errors"
-	"com.youyu.api/common/log"
+	"com.youyu.api/lib/errors"
+	"com.youyu.api/lib/log"
 	"context"
 	"github.com/gin-gonic/gin"
 	"strconv"
@@ -31,7 +31,7 @@ func (b *Base) GetIndexData(c *gin.Context) {
 	client, _,err := GetRpcServer(lis,err)
 	if err != nil {
 		c.JSON(errors.ErrInternalServer.HttpCode,gin.H{
-			"code": errors.ErrInternalServer.Code,
+			"code":    errors.ErrInternalServer.Code,
 			"message": errors.ErrInternalServer.Message,
 		})
 		log.Logger.Err(err).Timestamp()
@@ -45,9 +45,9 @@ func (b *Base) GetIndexData(c *gin.Context) {
 	advertisementResults, err2 := client.GetAdvertisementList(context.Background(), op)
 	if err1 != nil || err2 != nil {
 		c.JSON(errors.ErrDatabase.HttpCode, gin.H{
-			"code": errors.ErrDatabase.Code,
+			"code":    errors.ErrDatabase.Code,
 			"message": errors.ErrDatabase.Message,
-			"data": nil,
+			"data":    nil,
 		})
 		log.Logger.Err(err1).Timestamp()
 		return

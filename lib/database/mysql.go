@@ -4,7 +4,7 @@
 package database
 
 import (
-	"com.youyu.api/common/config"
+	"com.youyu.api/lib/config"
 	"github.com/pkg/errors"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"

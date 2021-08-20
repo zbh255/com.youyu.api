@@ -2,10 +2,10 @@ package main
 
 import (
 	rpc "com.youyu.api/app/rpc/proto_files"
-	"com.youyu.api/app/rpc/server"
-	"com.youyu.api/common/config"
-	"com.youyu.api/common/log"
-	"com.youyu.api/common/path"
+	"com.youyu.api/app/rpc/server/cent_api"
+	"com.youyu.api/lib/config"
+	"com.youyu.api/lib/log"
+	"com.youyu.api/lib/path"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"io"
@@ -74,7 +74,7 @@ func main() {
 		}
 	}()
 	// 注册服务
-	rpc.RegisterCentApiServer(grpcServer, &server.CentApiServer{
+	rpc.RegisterCentApiServer(grpcServer, &cent_api.CentApiServer{
 		BusinessConfFile: result.Marshal(),
 		RpcConfFile:      resultRpc.Marshal(),
 		FilePathList:     filePathList,
