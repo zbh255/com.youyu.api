@@ -1,4 +1,4 @@
-package db_api
+package data_rpc
 
 import (
 	"com.youyu.api/app/rpc/model"

@@ -4,7 +4,7 @@ import (
 	"com.youyu.api/app/rpc/client"
 	"com.youyu.api/app/rpc/model"
 	rpc "com.youyu.api/app/rpc/proto_files"
-	"com.youyu.api/app/rpc/server/db_api"
+	"com.youyu.api/app/rpc/server/data_rpc"
 	"com.youyu.api/lib/config"
 	"context"
 	"github.com/rs/zerolog/log"
@@ -60,7 +60,7 @@ func main() {
 			Time:    10,
 			Timeout: 3,
 		}))
-	rpc.RegisterMysqlApiServer(grpcServer, &db_api.MysqlApiServer{})
+	rpc.RegisterMysqlApiServer(grpcServer, &data_rpc.MysqlApiServer{})
 	err = grpcServer.Serve(listener)
 	if err != nil {
 		log.Panic().Err(err).Timestamp()

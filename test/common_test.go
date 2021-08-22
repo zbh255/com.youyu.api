@@ -1,7 +1,7 @@
 package test
 
 import (
-	"com.youyu.api/app/business_server/controller"
+	"com.youyu.api/app/business/controller"
 	"com.youyu.api/app/rpc/client"
 	"com.youyu.api/lib/config"
 	"fmt"

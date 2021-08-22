@@ -2,7 +2,7 @@ package main
 
 import (
 	rpc "com.youyu.api/app/rpc/proto_files"
-	"com.youyu.api/app/rpc/server/cent_api"
+	"com.youyu.api/app/rpc/server/cent_rpc"
 	"com.youyu.api/lib/config"
 	"com.youyu.api/lib/log"
 	"com.youyu.api/lib/path"
@@ -74,7 +74,7 @@ func main() {
 		}
 	}()
 	// 注册服务
-	rpc.RegisterCentApiServer(grpcServer, &cent_api.CentApiServer{
+	rpc.RegisterCentApiServer(grpcServer, &cent_rpc.CentApiServer{
 		BusinessConfFile: result.Marshal(),
 		RpcConfFile:      resultRpc.Marshal(),
 		FilePathList:     filePathList,

@@ -1,7 +1,7 @@
 package router
 
 import (
-	"com.youyu.api/app/business_server/controller"
+	"com.youyu.api/app/business/controller"
 	"github.com/gin-gonic/gin"
 )
 

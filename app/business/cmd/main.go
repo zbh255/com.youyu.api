@@ -1,7 +1,7 @@
 package main
 
 import (
-	"com.youyu.api/app/business_server/controller"
+	"com.youyu.api/app/business/controller"
 	"com.youyu.api/app/rpc/client"
 	rpc "com.youyu.api/app/rpc/proto_files"
 	"com.youyu.api/lib/config"
@@ -16,6 +16,7 @@ import (
 	"os"
 	"time"
 )
+
 
 func main() {
 	// 初始化配置

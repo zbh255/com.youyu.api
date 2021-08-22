@@ -17,178 +17,54 @@
 
 ---
 
-### build
+### 一些约定
 
-```makefile
-make mod
-```
+> 注: *为任何可能的文件夹
 
-> `mod` 初始化需要的Go编译的包依赖
-
-```makefile
-make create
-```
-
-> 创建运行时所需要的文件
-
-```makefile
-make build-linux
-```
-
-> 编译`linux`版本的程序
-
-```makefile
-make build-docker
-```
-
-> ~~编译`docker`镜像~~ `该Target已经废弃，不建议使用`
-
----
-
-### run
-
-> 执行编译命令成功之后的文件夹名为`build_release`
+>  `com.youyu.api/app/*`放置的是项目要编译的主程序和工具程序，必须要有以个`cmd`文件夹，里面存放`main.go`文件，编译程序的名字约定为`cmd`父文件夹的名字,比如下方代码块的目录结构,按照约定，编译的程序名为`business`和`uts`
 >
-> `build_release`的目录结构为
+> `com.youyu.api/app/rpc/server/*`则不同上，因为是`Rpc service`服务，所以`cmd`目录放在`server/*`下,按照约定，编译出来的程序名字也是`cmd`的父目录
 
 ```shell
-.
-|-- business
-|-- business.dockerfile
-|-- cache
-|   `-- rsa
-|-- cent_rpc
-|-- cent_rpc.dockerfile
-|-- conf
-|   |-- app.conf.toml
-|   `-- business.conf.toml
-|-- data_rpc
-|-- data_rpc.dockerfile
-|-- dir
-|-- docker-compose.yml
-|-- log
-|   |-- cent_rpc.log
-|   |-- data_rpc.log
-|   `-- gin.log
-`-- script
-    `-- mysql
-        `-- mysql
-            `-- youyu.sql
-```
-
-> 部署使用`docker-compose`管理容器
-
-```dockerfile
-docker-compose build
-```
-
-> docker-compose run
-
-```sh
-docker-compose up -d
-```
-
-> 查看容器运行情况
-
-```sh
-docker ps
+|-- app
+|   |-- business
+|   |   |-- cmd
+|   |   |   `-- main.go
+|   |   `-- controller
+|   |       |-- advertisement.go
+|   |       |-- article.go
+|   |       |-- base.go
+|   |       `-- connect.go
+|   |-- rpc
+|   |   |-- client
+|   |   |   |-- client.go
+|   |   |   `-- io.go
+|   |   |-- model
+|   |   |   `-- database_table_bind.go
+|   |   |-- proto_files
+|   |   |   |-- rpc_cent.pb.go
+|   |   |   `-- rpc_service.pb.go
+|   |   `-- server
+|   |       |-- cent_rpc
+|   |       |   |-- CentApi.go
+|   |       |   `-- cmd
+|   |       |       `-- main.go
+|   |       `-- data_rpc
+|   |           |-- cmd
+|   |           |   `-- main.go
+|   |           `-- MysqlApi.go
+|   `-- uts
+|       |-- cmd
+|       |   `-- main.go
+|       `-- uts.go
 ```
 
 ---
 
-### conf
+### 本项目的其他文档
 
-> 默认将容器内的配置目录`app/conf`映射到宿主机下的`./conf`，所以在`./conf`下修改配置即可
+- [项目配置解析](./doc/PROJECT_CONFIG.md)
+- [项目的部署文档](./doc/DEPLOY.md)
+- [项目的结构解析](./doc/PROJECT_STRUCT)
+- [项目的版本发行日志](./RELEASE_NODE)
 
-> 本程序的配置使用的是Toml格式,关于Tmol的语法请查看这篇官方文档的中文翻译:[知乎](https://zhuanlan.zhihu.com/p/50412485)
-
-> 配置文件选项解析
-
-`business.app.toml`
-
-```toml
-[cent_rpc_server] # 配置和日志中心的地址
-    ip = "127.0.0.1"
-    port = "5001"
-```
-
-`app.conf.toml`
-
-```toml
-[data_rpc_server]
-    ip = "127.0.0.1" # 数据rpc的ip地址
-    port = "5000" # 端口
-
-# rpc_server使用
-[database]
-    ip_addr = "192.168.31.24"
-    port = "3306"
-    user_name = "root"
-    user_password = "Cok774.."
-[database.sync]
-    db_max_idle_size = 300 # 最大空闲连接数
-    db_max_open_conn_size = 400 # 最大打开连接数
-    db_max_conn_life_time = 15 # 连接存活时间
-
-[server]
-    ip_addr = "127.0.0.1" # gin web_server ip
-    port = "8080" # port
-    protocol = "http" # 使用的协议,目前只对http进行了支持
-[server.sync]
-    grpc_poll_init_cap_size = 100 # 初始化连接数
-    grpc_poll_max_cap_size  = 300 # 最大连接数
-    grpc_poll_max_idle-size = 200 # 最大空闲连接数
-    grpc_poll_max_idle_timeout = 15 # 连接存活时间,以秒为单位
-```
-
-
-
----
-
-### struct
-
-> 本程序目录结构
-
-<details>
-<summary>展开查看</summary>
-<pre><code>.
-├─app
-│  ├─business_server -- 业务服务器
-│  │  └─controller -- 控制器层
-│  └─rpc -- grpc调用的一些实例
-│      ├─client -- grpc 客户端的获取函数
-│      ├─model -- dao层
-│      ├─proto_files -- protobuf文件生成的service代码存根
-│      └─server -- grpc 服务器的具体实现函数
-├─build_debug -- 编译缓存文件
-│  ├─conf
-│  └─log
-├─cmd
-│  ├─main_server -- gin web服务器的启动程序
-│  ├─rpc_cent_cmd -- 配置中心和日志中心的启动文件
-│  └─rpc_cmd -- 数据rpc的启动文件
-├─common
-│  ├─config -- toml配置文件的解析
-│  ├─database -- 数据库连接的支持
-│  ├─errors -- 错误码
-│  ├─interface -- 存放公共统一的接口
-│  ├─log -- zerolog的封装
-│  ├─middleware -- gin的中间件服务
-│  ├─path -- 项目公共的路径和文件名称
-│  ├─router -- gin路由
-│  └─utils -- 独立的工具包
-├─conf
-│  ├─dev -- 配置文件的原型
-│  └─pro -- 配置文件的原型
-├─internal -- grpc service文件
-│  └─proto_file -- protobuf生成的go代码文件
-│      └─com.youyu.api
-│          └─app
-│              └─rpc
-│                  └─proto_files
-├─script -- 程序用到的一些脚本，比如数据库初始化脚本
-└─test -- 测试代码
-    ├─conf
-    └─log
-</code></pre>
-</details>

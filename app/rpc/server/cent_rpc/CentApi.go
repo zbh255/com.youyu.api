@@ -1,4 +1,4 @@
-package cent_api
+package cent_rpc
 
 import (
 	rpc "com.youyu.api/app/rpc/proto_files"
