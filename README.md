@@ -65,6 +65,6 @@
 
 - [项目配置解析](./doc/PROJECT_CONFIG.md)
 - [项目的部署文档](./doc/DEPLOY.md)
-- [项目的结构解析](./doc/PROJECT_STRUCT)
-- [项目的版本发行日志](./RELEASE_NODE)
+- [项目的结构解析](./doc/PROJECT_STRUCT.md)
+- [项目的版本发行日志](./RELEASE_NODE.md)
 
