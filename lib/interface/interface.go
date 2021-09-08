@@ -11,6 +11,6 @@ type CentConfig interface {
 	UpdateConfig([]byte) error
 }
 
-// 连接云端的统一接口
+// Cloud 连接云端的统一接口
 type Cloud interface {
 }

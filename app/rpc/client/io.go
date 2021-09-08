@@ -5,7 +5,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// 实现io.Write接口，用于向grpc server传递数据
+// IOW 实现io.Write接口，用于向grpc server传递数据
 type IOW struct {
 	CentRpcPushStream rpc.CentApi_PushLogStreamClient
 	FileName          string

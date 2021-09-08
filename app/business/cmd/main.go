@@ -5,18 +5,22 @@ import (
 	"com.youyu.api/app/rpc/client"
 	rpc "com.youyu.api/app/rpc/proto_files"
 	"com.youyu.api/lib/config"
+	"com.youyu.api/lib/ecode"
+	"com.youyu.api/lib/log"
+	"com.youyu.api/lib/path"
 	"com.youyu.api/lib/router"
 	"context"
-	"fmt"
+	"encoding/json"
 	"github.com/gin-contrib/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
+	zlg "github.com/rs/zerolog/log"
 	"github.com/silenceper/pool"
 	"google.golang.org/grpc"
 	"io"
 	"os"
 	"time"
 )
-
 
 func main() {
 	// 初始化配置
@@ -51,21 +55,33 @@ func main() {
 	r := gin.New()
 	gin.DefaultWriter = io.MultiWriter(&client.IOW{
 		CentRpcPushStream: stream,
-		FileName:          "gin.log",
+		FileName:          path.LogWebServerFileName,
 	}, os.Stdout)
 	// json日志
 	r.Use(logger.SetLogger())
-	router.InitRouter(r)
+	// 初始化业务日志
+	businessStream, err := clientE.PushLogStream(context.Background())
+	if err != nil {
+		panic(err)
+	}
+	defer businessStream.CloseSend()
+	router.InitRouter(r, log.Logger(&log.ZLogger{
+		Level: zerolog.ErrorLevel,
+		Logger: zlg.Output(&client.IOW{
+			CentRpcPushStream: businessStream,
+			FileName:          path.LogBusinessFileName,
+		}),
+	}))
 	// 初始化grpc设置
 	grpc.MaxSendMsgSize(2 << 31)
 	grpc.MaxRecvMsgSize(2 << 31)
 	grpc.InitialWindowSize(2 << 29)
 	grpc.InitialConnWindowSize(2 << 29)
 	grpc.MaxConcurrentStreams(2 << 8)
-	// 初始化连接池
+	// 初始化data_rpc连接池
 	Factory := func() (interface{}, error) {
 		m, c, e := client.GetMysqlApiRpcServerLink(resultAG)
-		return &[2]interface{}{m,c}, e
+		return &[2]interface{}{m, c}, e
 	}
 	Close := func(i interface{}) error {
 		i2 := i.(*[2]interface{})
@@ -73,19 +89,56 @@ func main() {
 		return conn.Close()
 	}
 	p, err := pool.NewChannelPool(&pool.Config{
-		InitialCap:  resultAG.Server.Sync.GrpcPollInitCapSize,
-		MaxCap:      resultAG.Server.Sync.GrpcPollMaxCapSize,
-		MaxIdle:     resultAG.Server.Sync.GrpcPollMaxIdleSize,
+		InitialCap:  resultAG.Server.Sync.DataRPC.GrpcPollInitCapSize,
+		MaxCap:      resultAG.Server.Sync.DataRPC.GrpcPollMaxCapSize,
+		MaxIdle:     resultAG.Server.Sync.DataRPC.GrpcPollMaxIdleSize,
 		Factory:     Factory,
 		Close:       Close,
-		IdleTimeout: time.Duration(resultAG.Server.Sync.GrpcPollMaxIdleTimeout) * time.Second,
+		IdleTimeout: time.Duration(resultAG.Server.Sync.DataRPC.GrpcPollMaxIdleTimeout) * time.Second,
 	})
 	if err != nil {
-		fmt.Println("err=", err)
+		panic(err)
+	}
+	// 初始化secretKey_rpc连接池
+	Factory = func() (interface{}, error) {
+		m, c, e := client.GetSecretKeyApiRpcServerLink(resultAG)
+		return &[2]interface{}{m, c}, e
+	}
+	Close = func(i interface{}) error {
+		i2 := i.(*[2]interface{})
+		conn := i2[1].(*grpc.ClientConn)
+		return conn.Close()
+	}
+	sp, err := pool.NewChannelPool(&pool.Config{
+		InitialCap:  resultAG.Server.Sync.SecretKeyRPC.GrpcPollInitCapSize,
+		MaxCap:      resultAG.Server.Sync.SecretKeyRPC.GrpcPollMaxCapSize,
+		MaxIdle:     resultAG.Server.Sync.SecretKeyRPC.GrpcPollMaxIdleSize,
+		Factory:     Factory,
+		Close:       Close,
+		IdleTimeout: time.Duration(resultAG.Server.Sync.SecretKeyRPC.GrpcPollMaxIdleTimeout) * time.Second,
+	})
+	if err != nil {
+		panic(err)
 	}
 	controller.ConnectAndConf = &controller.ConnectAndConfig{
-		Config:      resultAG,
-		ConnPool:        p,
+		Config:               resultAG,
+		DataRpcConnPool:      p,
+		SecretKeyRpcConnPool: sp,
 	}
+	// 注册签名密钥
+	controller.TokenSigningKey = []byte(resultAG.Project.Auth.TokenSigntureKey)
+	// 注册Token过期时间
+	controller.TokenExpTime = resultAG.Project.Auth.TokenTimeout
+	// 注册错误
+	errInfo, err := clientE.GetErrMsgJsonBytes(context.Background(), &rpc.Null{})
+	if err != nil {
+		panic(err)
+	}
+	errCodeMap := make(map[int]string)
+	err = json.Unmarshal(errInfo.Data, &errCodeMap)
+	if err != nil {
+		panic(err)
+	}
+	ecode.Register(errCodeMap)
 	_ = r.Run(resultAG.Server.IPAddr + ":" + resultAG.Server.Port)
 }

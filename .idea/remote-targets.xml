@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteTargetsManager">
+    <targets>
+      <target name="root@10.190.15.73:22" type="ssh/sftp">
+        <config>
+          <option name="projectRootOnTarget" value="/www/wwwroot/build_test" />
+          <option name="serverName" value="root@10.190.15.73:22 password" />
+        </config>
+        <ContributedStateBase type="GoLanguageRuntime">
+          <config />
+        </ContributedStateBase>
+      </target>
+    </targets>
+  </component>
+</project>

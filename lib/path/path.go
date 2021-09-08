@@ -8,13 +8,25 @@ const (
 	ConfBusinessFileName  string = "business.conf.toml"
 	ConfRpcServerFileName string = "app.conf.toml"
 
-	// 配置中心用来获取和写入配置的Config结构中的Type字段
+	// ConfBusinessRequestType 配置中心用来获取和写入配置的Config结构中的Type字段
 	ConfBusinessRequestType string = "business_config"
 	ConfRpcRequestType      string = "rpc_config"
-	// 日志中心的日志文件路径
+	// LogGlobalPath 日志中心的日志文件路径
 	LogGlobalPath string = "./log"
-	// 应用程序日志文件
-	LogBusinessFileName   string = "gin.log"
+	// LogWebServerFileName gin web服务器日志文件
+	LogWebServerFileName  string = "gin.log"
 	LogDataRpcFileName    string = "data_rpc.log"
 	LogConfigCentFileName string = "cent_rpc.log"
+	LogBusinessFileName   string = "business.log"
+	// InfoFileDefaultPath 信息文件的默认路径
+	InfoFileDefaultPath string = "./dir"
+	// ErrMsgJsonFileName 信息文件的默认名
+	ErrMsgJsonFileName    string = "err_msg.json"
+	RsaPublicKeyFileName  string = "pub_key.pem"
+	RsaPrivateKeyFileName string = "pri_key.pem"
+	// redis 用于区分存放签名密钥和token的key前缀
+	SigningKeyPrefix string = "signing;key:"
+	TokenKeyPrefix   string = "token;key:"
+	// redis 用于区分存储公私钥和token和签名的key
+	PubAndPriKeyPrefix string = "pub.pri;x509;key:"
 )

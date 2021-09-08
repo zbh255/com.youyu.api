@@ -38,6 +38,6 @@ func GetInfo() *Info {
 		BuildDate:    buildDate,
 		GoVersion:    runtime.Version(),
 		Compiler:     runtime.Compiler,
-		Platform:     fmt.Sprintf("%s/%s",runtime.GOOS,runtime.GOARCH),
+		Platform:     fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
 	}
 }

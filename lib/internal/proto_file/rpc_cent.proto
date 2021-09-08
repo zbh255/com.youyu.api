@@ -1,22 +1,25 @@
 syntax = "proto3";
 
-package base.common;
-
 import "rpc_service.proto";
+
+package base.common.rpc_cent;
 
 
 option go_package = "com.youyu.api/app/rpc/proto_files";
 
 service CentApi{
   // 配置中心接口
-  rpc GetBusinessConfFile(null) returns (config);
-  rpc SetBusinessConfFile(config) returns (null);
-  rpc GetRpcServerConfFile(null) returns (config);
-  rpc SetRpcServerConfFile(config) returns (null);
+  rpc GetBusinessConfFile(rpc_service.null) returns (config);
+  rpc SetBusinessConfFile(config) returns (rpc_service.null);
+  rpc GetRpcServerConfFile(rpc_service.null) returns (config);
+  rpc SetRpcServerConfFile(config) returns (rpc_service.null);
   // 刷新配置文件
-  rpc FlushConfFile(null) returns (null);
+  rpc FlushConfFile(rpc_service.null) returns (rpc_service.null);
   // 日志接口
-  rpc PushLogStream(stream log) returns (null) {}
+  rpc PushLogStream(stream log) returns (rpc_service.null) {}
+  // 信息中心接口
+  rpc GetErrMsgJsonBytes(rpc_service.null) returns (info) {}
+  rpc SetErrMsgJson(info) returns (rpc_service.null) {}
 }
 
 
@@ -28,4 +31,9 @@ message config {
 message log {
   string fileName = 1;
   bytes value = 2;
+}
+
+message info {
+  string type = 1;
+  bytes data = 2;
 }

@@ -1,11 +1,12 @@
 syntax = "proto3";
 
-package base.common;
+package base.common.rpc_service;
 
 option go_package = "com.youyu.api/app/rpc/proto_files";
 
 service MysqlApi {
-  rpc addArticle(Article) returns (Errors) {};
+  // 添加文章，添加成功后返回文章id供测试程序测试
+  rpc addArticle(Article) returns (Article) {};
   rpc getArticle(getArticle_request) returns (Article) {};
   rpc updateArticle(Article) returns (Errors) {}
   rpc delArticle(getArticle_request) returns (Errors) {}
@@ -25,6 +26,19 @@ service MysqlApi {
   rpc  updateAdvertisement(advertisement) returns (Errors) {}
   rpc  delAdvertisement(advertisement_request) returns(Errors) {}
   rpc  getAdvertisementList(ArticleOptions) returns (advertisement_response);
+  // 标签rpc接口
+  rpc getTagText(tag) returns (tag);
+  rpc getTagInt32Id(tag) returns (tag);
+  rpc addTag(tag) returns (null);
+  rpc delTag(tag) returns (null);
+  // 用户rpc接口
+  rpc createUserSign(user_login_or_sign) returns (Errors) {}
+  rpc getUserInfo(user_auth) returns (user_info_show) {}
+  rpc updateUserInfo(user_info_set) returns (Errors);
+  rpc deleteUserSign(user_auth) returns (Errors);
+  // 验证用户是否存在,data_rpc不负责登录等存取token的逻辑
+  rpc checkUserStatus(user_login_or_sign) returns (Errors);
+  // 订单rpc接口
 }
 
 message null {}
@@ -36,7 +50,6 @@ message Article_Response {
 message getArticle_request{
   string article_id = 1;
 }
-
 
 message Article {
   string article_id = 1;
@@ -88,6 +101,8 @@ message Errors {
   int32 http_code = 1;
   int32 code = 2;
   string message = 3;
+  // 存储一些返回的数据，比如uid和user_name
+  map<string,string> Data= 4;
 }
 
 message advertisement_request {
@@ -105,4 +120,53 @@ message advertisement{
   int32 advertisement_weight = 4;
   string advertisement_body = 5;
   string advertisement_owner = 6;
+}
+
+message tag {
+  int32 tid = 1;
+  string text = 2;
+}
+
+// 用户鉴权信息
+message user_auth {
+  string uid = 1;
+  string token = 2;
+}
+
+// 用户注册登录信息
+message user_login_or_sign {
+  string user_name = 1;
+  string user_password = 2;
+  string user_bind_info = 3;
+  string v_code = 4;
+  string v_token = 5;
+  int32 save = 6;
+}
+
+// 用户信息
+message user_info_show {
+  int32 uid = 1;
+  int32 level = 2;
+  int32 phone = 3;
+  string email = 4;
+  int32 phone_status = 5;
+  int32 email_status = 6;
+  string create_time = 7;
+  int32 sex = 8;
+  int32 age = 9;
+  string user_name = 10;
+  string user_nick_name = 11;
+}
+
+// 用户可以随意设置的信息
+message user_info_set {
+  // uid只用来查询用户
+  int32 uid = 1;
+  int32 phone = 3;
+  string email = 4;
+  int32 sex = 8;
+  int32 age = 9;
+  string user_nick_name = 11;
+  string addr = 12;
+  string explain = 13;
 }
