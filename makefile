@@ -17,6 +17,7 @@ DIR_APP_JOB = $(DIR_APP)/job
 DIR_CONFIG = ./build/conf
 DIR_SCRIPT = ./build/script
 DIR_LOG = ./build/log
+DIR_INFO = ./build/dir
 DIR_BUILD = ./project
 DIR_VERSION = "com.youyu.api/lib/utils/version"
 DIR_BUILD_CACHE = $(DIR_BUILD)/build_cache
@@ -52,6 +53,7 @@ linux-create:
 	cp -r $(DIR_SCRIPT)/docker/* $(DIR_BUILD)
 	cp -r $(DIR_SCRIPT)/mysql $(DIR_BUILD)/script
 	cp -r $(DIR_CONFIG)/pro/ $(DIR_BUILD)/conf
+	cp -r $(DIR_INFO) $(DIR_BUILD)
 
 linux-clean:
 	rm -rf $(DIR_BUILD)
@@ -62,6 +64,7 @@ build-linux: linux-create
 build-linux:export GOOS=linux
 build-linux:export GOARCH=amd64
 build-linux:export GO111MODULE=on
+build-linux:export CGO_ENABLED=0
 build-linux:
 	# 注入版本信息并编译工具程序
 	# 提取程序名

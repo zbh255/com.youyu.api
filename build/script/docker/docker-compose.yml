@@ -59,18 +59,21 @@ services:
     pid: "host"
     volumes:
       - ./conf:/app/conf:rw
+      - ./dir:/app/dir:rw
     networks:
       - back
 
-  secertKey_rpc:
-    container_name: com.YouYu.api.secertKey_rpc
-    image: com.youyu.api.secertKey_rpc:v0.1.3
+  secretKey_rpc:
+    container_name: com.YouYu.api.secretKey_rpc
+    image: com.youyu.api.secret_key_rpc:v0.1.3
     build:
       context: ""
-      dockerfile: secertKey_rpc.dockerfile
+      dockerfile: secretKey_rpc.dockerfile
+    depends_on:
+      - cent_rpc
     labels:
       - com.YouYu.api.Version=v0.1.3
-      - com.YouYu.api.Feature=secertKey_rpc
+      - com.YouYu.api.Feature=secretKey_rpc
     pid: "host"
     volumes:
       - ./conf:/app/conf:ro

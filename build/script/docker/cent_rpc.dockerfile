@@ -3,6 +3,7 @@ FROM alpine
 # 复制需要的文件
 COPY ./conf /app/conf
 COPY ./log /app/log
+COPY ./dir /app/dir
 COPY ./cent_rpc /app
 
 # 容器的工作目录
