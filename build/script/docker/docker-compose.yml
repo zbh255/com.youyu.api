@@ -7,14 +7,14 @@ services:
       context: ""
       dockerfile: business.dockerfile
     # use link to public ports
-    image: com.youyu.api.business:v0.1.2
+    image: com.youyu.api.business:v0.1.3
     ports:
       - "8080:8080"
       # 先运行中心镜像，获取配置后确保正常运行
     depends_on:
       - cent_rpc
     labels:
-      - com.YouYu.api.Version=0.1.2
+      - com.YouYu.api.Version=v0.1.3
       - com.YouYu.api.Feature=business
     pid: "host"
     volumes:
@@ -23,10 +23,9 @@ services:
       - front
       - back
 
-
   data_rpc:
     container_name: com.YouYu.api.data_rpc
-    image: com.youyu.api.data_rpc:v0.1.2
+    image: com.youyu.api.data_rpc:v0.1.3
     build:
       context: ""
       dockerfile: data_rpc.dockerfile
@@ -37,7 +36,7 @@ services:
     depends_on:
       - cent_rpc
     labels:
-      - com.YouYu.api.Version=0.1.2
+      - com.YouYu.api.Version=v0.1.3
       - com.YouYu.api.Feature=data_rpc
     pid: "host"
     volumes:
@@ -47,7 +46,7 @@ services:
 
   cent_rpc:
     container_name: com.YouYu.api.cent_rpc
-    image: com.youyu.api.cent_rpc:v0.1.2
+    image: com.youyu.api.cent_rpc:v0.1.3
     build:
       context: ""
       dockerfile: cent_rpc.dockerfile
@@ -55,11 +54,26 @@ services:
 #    ports:
 #      - "5001:5001"
     labels:
-      - com.YouYu.api.Version=0.1.2
+      - com.YouYu.api.Version=v0.1.3
       - com.YouYu.api.Feature=cent_rpc
     pid: "host"
     volumes:
       - ./conf:/app/conf:rw
+    networks:
+      - back
+
+  secertKey_rpc:
+    container_name: com.YouYu.api.secertKey_rpc
+    image: com.youyu.api.secertKey_rpc:v0.1.3
+    build:
+      context: ""
+      dockerfile: secertKey_rpc.dockerfile
+    labels:
+      - com.YouYu.api.Version=v0.1.3
+      - com.YouYu.api.Feature=secertKey_rpc
+    pid: "host"
+    volumes:
+      - ./conf:/app/conf:ro
     networks:
       - back
 
