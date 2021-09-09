@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package base.common.test_rpc;
+
+
+option go_package = "com.youyu.api/app/rpc/proto_files";
+
+service TestApi{
+  rpc TestInt(test_data) returns (test_data);
+}
+
+message test_data {
+  int32 Int = 1;
+  uint32 Uint = 2;
+}

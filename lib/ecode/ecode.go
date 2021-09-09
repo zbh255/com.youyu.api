@@ -39,6 +39,7 @@ func New(e int) Code {
 	return add(e)
 }
 
+
 // 添加基本错误信息码
 func add(e int) Code {
 	if _, ok := __codes__[e]; ok {

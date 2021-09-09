@@ -4,11 +4,13 @@ import (
 	"com.youyu.api/app/rpc/model"
 	rpc "com.youyu.api/app/rpc/proto_files"
 	"com.youyu.api/lib/ecode"
+	"com.youyu.api/lib/ecode/status"
 	"com.youyu.api/lib/log"
 	"com.youyu.api/lib/utils"
 	"context"
 	"crypto/md5"
 	"encoding/hex"
+	"fmt"
 	"github.com/pkg/errors"
 	"strconv"
 	"sync"
@@ -25,7 +27,10 @@ type MysqlApiServer struct {
 // AddArticle Tag按;分割
 // TODO:go-encrypt代替标准库加密的api
 func (s *MysqlApiServer) AddArticle(ctx context.Context, article *rpc.Article) (*rpc.Article, error) {
+	// 重试次数上限为3
+	num := 0
 	md := model.Article{}
+	aeLoop:
 	t := time.Now()
 	// 文章id=md5(用户uid+文章标题+文章创建时间时间戳)
 	hash := md5.New()
@@ -40,13 +45,22 @@ func (s *MysqlApiServer) AddArticle(ctx context.Context, article *rpc.Article) (
 		CreateTime: t,
 		UpdateTime: t,
 	})
-	if err != nil {
+	switch errors.Cause(err) {
+	case model.ArticleIdAlreadyExists:
+		// article id 存在则重试
+		if num <= 3 {
+			num++
+			goto aeLoop
+		}
+		return &rpc.Article{},status.Error(ecode.AddArticleErr,ecode.AddArticleErr.Message())
+	case nil:
+		return &rpc.Article{
+			ArticleId: articleModel.Id,
+		}, nil
+	default:
 		s.Logger.Error(errors.Wrap(err, "add article failed"))
-		return &rpc.Article{}, err
+		return &rpc.Article{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	}
-	return &rpc.Article{
-		ArticleId: articleModel.Id,
-	}, nil
 }
 
 func (s *MysqlApiServer) GetArticleList(ctx context.Context, null *rpc.ArticleOptions) (*rpc.Article_Response, error) {
@@ -59,7 +73,7 @@ func (s *MysqlApiServer) GetArticleList(ctx context.Context, null *rpc.ArticleOp
 	})
 	if err != nil {
 		s.Logger.Error(errors.Wrap(err, "get ArticleList failed"))
-		return &rpc.Article_Response{}, err
+		return &rpc.Article_Response{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	}
 	response := &rpc.Article_Response{Articles: make([]*rpc.ArticleLinkTab, 0)}
 	for k := range results {
@@ -83,73 +97,100 @@ func (s *MysqlApiServer) GetArticleList(ctx context.Context, null *rpc.ArticleOp
 func (s *MysqlApiServer) GetArticle(ctx context.Context, request *rpc.GetArticleRequest) (*rpc.Article, error) {
 	md := model.Article{}
 	article, err := md.GetArticle(request.ArticleId)
-	if err != nil {
+
+	switch errors.Cause(err) {
+	case model.ArticleIdNotExists:
+		s.Logger.Info(fmt.Sprintf("%+v",errors.Wrap(err,request.ArticleId)))
+		return &rpc.Article{},status.Error(ecode.GetArticleErr,ecode.GetArticleErr.Message())
+	case nil:
+		return &rpc.Article{
+			ArticleId:         article.Id,
+			ArticleAbstract:   article.Abstract,
+			ArticleContent:    article.Content,
+			ArticleTitle:      article.Title,
+			ArticleTag:        utils.SplitStringsToTagList(article.Tag),
+			Uid:               article.Uid,
+			ArticleCreateTime: article.CreateTime.Unix(),
+			ArticleUpdateTime: article.UpdateTime.Unix(),
+		}, nil
+	default:
 		s.Logger.Error(errors.Wrap(err, "get article failed"))
-		return &rpc.Article{}, err
+		return &rpc.Article{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	}
-	return &rpc.Article{
-		ArticleId:         article.Id,
-		ArticleAbstract:   article.Abstract,
-		ArticleContent:    article.Content,
-		ArticleTitle:      article.Title,
-		ArticleTag:        utils.SplitStringsToTagList(article.Tag),
-		Uid:               article.Uid,
-		ArticleCreateTime: article.CreateTime.Unix(),
-		ArticleUpdateTime: article.UpdateTime.Unix(),
-	}, nil
 }
 
 func (s *MysqlApiServer) GetArticleStatistics(ctx context.Context, request *rpc.GetArticleRequest) (*rpc.ArticleStatistics, error) {
 	as := model.ArticleStatistics{}
 	result, err := as.GetArticleStatistics(request.ArticleId)
-	if err != nil {
-		s.Logger.Error(errors.Wrap(err, "get article statistics failed"))
-		return &rpc.ArticleStatistics{}, err
-	} else {
+	switch errors.Cause(err) {
+	case model.ArticleIdNotExists:
+		s.Logger.Info(fmt.Sprintf("%+v",errors.Wrap(err,"article id not exist: " + request.ArticleId)))
+		return &rpc.ArticleStatistics{},status.Error(ecode.GetArticleStatisticsErr,ecode.GetArticleStatisticsErr.Message())
+	case nil:
 		return &rpc.ArticleStatistics{
 			ArticleId:         result.Id,
 			ArticleFabulous:   result.Fabulous,
 			ArticleHot:        result.Hot,
 			ArticleCommentNum: result.CommentNum,
 		}, nil
+	default:
+		s.Logger.Error(errors.Wrap(err, "get article statistics failed"))
+		return &rpc.ArticleStatistics{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	}
+
 }
 
-func (s *MysqlApiServer) AddArticleStatisticsFabulous(ctx context.Context, null *rpc.GetArticleRequest) (*rpc.Errors, error) {
+func (s *MysqlApiServer) AddArticleStatisticsFabulous(ctx context.Context, null *rpc.GetArticleRequest) (*rpc.Null, error) {
 	s.Lock.Lock()
 	defer s.Lock.Unlock()
 	as := model.ArticleStatistics{}
 	err := as.AddFabulous(null.ArticleId)
-	if err != nil {
+	switch errors.Cause(err) {
+	case model.ArticleIdNotExists:
+		s.Logger.Info(fmt.Sprintf("%+v", errors.Wrap(err, "article id not exist: "+null.ArticleId)))
+		return &rpc.Null{}, status.Error(ecode.AddArticleFabulousErr, ecode.AddArticleFabulousErr.Message())
+	case nil:
+		return &rpc.Null{}, nil
+	default:
 		s.Logger.Error(errors.Wrap(err, "add article Statistics Fabulous failed"))
-		return &rpc.Errors{}, err
+		return &rpc.Null{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	}
-	return &rpc.Errors{}, nil
 }
 
-func (s *MysqlApiServer) AddArticleStatisticsHot(ctx context.Context, null *rpc.GetArticleRequest) (*rpc.Errors, error) {
+func (s *MysqlApiServer) AddArticleStatisticsHot(ctx context.Context, null *rpc.GetArticleRequest) (*rpc.Null, error) {
 	s.Lock.Lock()
 	defer s.Lock.Unlock()
 	as := model.ArticleStatistics{}
 	err := as.AddHot(null.ArticleId)
-	if err != nil {
+	switch errors.Cause(err) {
+	case model.ArticleIdNotExists:
+		s.Logger.Info(fmt.Sprintf("%+v", errors.Wrap(err, "article id not exist: "+null.ArticleId)))
+		return &rpc.Null{}, status.Error(ecode.AddArticleHotErr, ecode.AddArticleHotErr.Message())
+	case nil:
+		return &rpc.Null{}, nil
+	default:
 		s.Logger.Error(errors.Wrap(err, "add article statistics hot failed"))
-		return &rpc.Errors{}, err
+		return &rpc.Null{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	}
-	return &rpc.Errors{}, nil
 }
 
-func (s *MysqlApiServer) AddArticleStatisticsCommentNum(ctx context.Context, null *rpc.GetArticleRequest) (*rpc.Errors, error) {
+func (s *MysqlApiServer) AddArticleStatisticsCommentNum(ctx context.Context, null *rpc.GetArticleRequest) (*rpc.Null, error) {
 	as := model.ArticleStatistics{}
 	err := as.AddCommentNum(null.ArticleId)
-	if err != nil {
+	switch errors.Cause(err) {
+	case model.ArticleIdNotExists:
+		s.Logger.Info(fmt.Sprintf("%+v", errors.Wrap(err, "article id not exist: "+null.ArticleId)))
+		return &rpc.Null{}, status.Error(ecode.AddArticleCommentNumErr, ecode.AddArticleCommentNumErr.Message())
+	case nil:
+		return &rpc.Null{}, nil
+	default:
 		s.Logger.Error(errors.Wrap(err, "add article statistics comment num failed"))
-		return &rpc.Errors{}, err
+		return &rpc.Null{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	}
-	return &rpc.Errors{}, nil
+
 }
 
-func (s *MysqlApiServer) AddAdvertisement(ctx context.Context, advertisement *rpc.Advertisement) (*rpc.Errors, error) {
+func (s *MysqlApiServer) AddAdvertisement(ctx context.Context, advertisement *rpc.Advertisement) (*rpc.Null, error) {
 	md := model.Advertisement{}
 	err := md.AddAdvertisement(&model.Advertisement{
 		Id:     advertisement.AdvertisementId,
@@ -161,19 +202,20 @@ func (s *MysqlApiServer) AddAdvertisement(ctx context.Context, advertisement *rp
 	})
 	if err != nil {
 		s.Logger.Error(errors.Wrap(err, "add advertisement failed"))
-		return &rpc.Errors{}, err
+		return &rpc.Null{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	} else {
-		return &rpc.Errors{}, nil
+		return &rpc.Null{}, nil
 	}
 }
 
 func (s *MysqlApiServer) GetAdvertisement(ctx context.Context, request *rpc.AdvertisementRequest) (*rpc.Advertisement, error) {
 	md := model.Advertisement{}
 	result, err := md.GetAdvertisement(request.AdvertisementId)
-	if err != nil {
-		s.Logger.Error(errors.Wrap(err, "get advertisement failed"))
-		return &rpc.Advertisement{}, err
-	} else {
+	switch errors.Cause(err) {
+	case model.AdvertisementIdNotExists:
+		s.Logger.Info(fmt.Sprintf("%+v", errors.Wrap(err, "article id not exist: " + string(request.AdvertisementId))))
+		return &rpc.Advertisement{}, status.Error(ecode.GetAdvertisementErr, ecode.GetAdvertisementErr.Message())
+	case nil:
 		return &rpc.Advertisement{
 			AdvertisementId:     result.Id,
 			AdvertisementType:   result.Type,
@@ -182,7 +224,11 @@ func (s *MysqlApiServer) GetAdvertisement(ctx context.Context, request *rpc.Adve
 			AdvertisementBody:   result.Body,
 			AdvertisementOwner:  result.Owner,
 		}, nil
+	default:
+		s.Logger.Error(errors.Wrap(err, "get advertisement failed"))
+		return &rpc.Advertisement{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	}
+
 }
 
 func (s *MysqlApiServer) GetAdvertisementList(ctx context.Context, null *rpc.ArticleOptions) (*rpc.AdvertisementResponse, error) {
@@ -195,7 +241,7 @@ func (s *MysqlApiServer) GetAdvertisementList(ctx context.Context, null *rpc.Art
 	})
 	if err != nil {
 		s.Logger.Error(errors.Wrap(err, "get advertisement list failed"))
-		return &rpc.AdvertisementResponse{}, err
+		return &rpc.AdvertisementResponse{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	}
 	response := &rpc.AdvertisementResponse{AdvertisementList: make([]*rpc.Advertisement, 0)}
 	for k := range results {
@@ -211,7 +257,7 @@ func (s *MysqlApiServer) GetAdvertisementList(ctx context.Context, null *rpc.Art
 	return response, nil
 }
 
-func (s *MysqlApiServer) UpdateArticle(ctx context.Context, article *rpc.Article) (*rpc.Errors, error) {
+func (s *MysqlApiServer) UpdateArticle(ctx context.Context, article *rpc.Article) (*rpc.Null, error) {
 	md := model.Article{}
 	err := md.SetArticle(&model.Article{
 		Id:         article.ArticleId,
@@ -223,37 +269,46 @@ func (s *MysqlApiServer) UpdateArticle(ctx context.Context, article *rpc.Article
 		CreateTime: time.Now(),
 		UpdateTime: time.Now(),
 	})
-	if err != nil {
+	switch errors.Cause(err) {
+	case model.ArticleIdNotExists:
+		s.Logger.Info(fmt.Sprintf("%+v", errors.Wrap(err, "article id not exist: " + string(article.ArticleId))))
+		return &rpc.Null{}, status.Error(ecode.UpdArticleErr, ecode.UpdArticleErr.Message())
+	case nil:
+		return &rpc.Null{}, nil
+	default:
 		s.Logger.Error(errors.Wrap(err, "update article failed"))
-		return &rpc.Errors{}, err
-	} else {
-		return &rpc.Errors{}, nil
+		return &rpc.Null{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	}
 }
 
-func (s *MysqlApiServer) DelArticle(ctx context.Context, request *rpc.GetArticleRequest) (*rpc.Errors, error) {
+func (s *MysqlApiServer) DelArticle(ctx context.Context, request *rpc.GetArticleRequest) (*rpc.Null, error) {
 	md := model.Article{}
 	err := md.DelArticle(request.ArticleId)
 	if err != nil {
 		s.Logger.Error(errors.Wrap(err, "del article failed"))
-		return &rpc.Errors{}, err
+		return &rpc.Null{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	} else {
-		return &rpc.Errors{}, nil
+		return &rpc.Null{}, nil
 	}
 }
 
-func (s *MysqlApiServer) DelArticleStatisticsFabulous(ctx context.Context, request *rpc.GetArticleRequest) (*rpc.Errors, error) {
+func (s *MysqlApiServer) DelArticleStatisticsFabulous(ctx context.Context, request *rpc.GetArticleRequest) (*rpc.Null, error) {
 	md := model.ArticleStatistics{}
 	err := md.ReduceFabulous(request.ArticleId)
-	if err != nil {
+	switch errors.Cause(err) {
+	case model.ArticleIdNotExists:
+		s.Logger.Info(fmt.Sprintf("%+v", errors.Wrap(err, "article id not exist: "+request.ArticleId)))
+		return &rpc.Null{}, status.Error(ecode.DelArticleFabulousErr, ecode.DelArticleFabulousErr.Message())
+	case nil:
+		return &rpc.Null{}, nil
+	default:
 		s.Logger.Error(errors.Wrap(err, "del article statistics fabulous failed"))
-		return &rpc.Errors{}, err
-	} else {
-		return &rpc.Errors{}, nil
+		return &rpc.Null{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	}
+
 }
 
-func (s *MysqlApiServer) UpdateAdvertisement(ctx context.Context, request *rpc.Advertisement) (*rpc.Errors, error) {
+func (s *MysqlApiServer) UpdateAdvertisement(ctx context.Context, request *rpc.Advertisement) (*rpc.Null, error) {
 	md := model.Advertisement{}
 	err := md.SetAdvertisement(&model.Advertisement{
 		Id:     request.AdvertisementId,
@@ -265,20 +320,20 @@ func (s *MysqlApiServer) UpdateAdvertisement(ctx context.Context, request *rpc.A
 	})
 	if err != nil {
 		s.Logger.Error(errors.Wrap(err, "update advertisement failed"))
-		return &rpc.Errors{}, err
+		return &rpc.Null{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	} else {
-		return &rpc.Errors{}, nil
+		return &rpc.Null{}, nil
 	}
 }
 
-func (s *MysqlApiServer) DelAdvertisement(ctx context.Context, request *rpc.AdvertisementRequest) (*rpc.Errors, error) {
+func (s *MysqlApiServer) DelAdvertisement(ctx context.Context, request *rpc.AdvertisementRequest) (*rpc.Null, error) {
 	md := model.Advertisement{}
 	err := md.DelAdvertisement(request.AdvertisementId)
 	if err != nil {
 		s.Logger.Error(errors.Wrap(err, "del advertisement failed"))
-		return &rpc.Errors{}, err
+		return &rpc.Null{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	} else {
-		return &rpc.Errors{}, nil
+		return &rpc.Null{}, nil
 	}
 }
 
@@ -299,14 +354,19 @@ func (s *MysqlApiServer) GetTagText(ctx context.Context, tag *rpc.Tag) (*rpc.Tag
 func (s *MysqlApiServer) AddTag(ctx context.Context, tag *rpc.Tag) (*rpc.Null, error) {
 	md := model.Tags{}
 	err := md.AddTag(tag.Text)
-	if err != nil {
-		s.Logger.Error(err)
-		return &rpc.Null{}, err
-	} else {
+	switch errors.Cause(err) {
+	case model.TagNameAlreadyExists:
+		return &rpc.Null{},status.Error(ecode.TagNameAlreadyExists,ecode.TagNameAlreadyExists.Message())
+	case nil:
 		return &rpc.Null{}, nil
+	default:
+		s.Logger.Error(err)
+		return &rpc.Null{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	}
+
 }
 
+// NOTE: 非给普通用户客户端开放的接口
 func (s *MysqlApiServer) DelTag(ctx context.Context, tag *rpc.Tag) (*rpc.Null, error) {
 	md := model.Tags{}
 	err := md.DelTag(tag.Tid)
@@ -321,18 +381,22 @@ func (s *MysqlApiServer) DelTag(ctx context.Context, tag *rpc.Tag) (*rpc.Null, e
 func (s *MysqlApiServer) GetTagInt32Id(ctx context.Context, tag *rpc.Tag) (*rpc.Tag, error) {
 	md := model.Tags{}
 	int32Id, err := md.GetTagInt32Id(tag.Text)
-	if err != nil {
-		s.Logger.Error(err)
-		return &rpc.Tag{}, err
-	} else {
+	switch errors.Cause(err) {
+	case model.TagNameNotExists:
+		return &rpc.Tag{},status.Error(ecode.TagNameNotExists,ecode.TagNameNotExists.Message())
+	case nil:
 		return &rpc.Tag{Tid: int32Id, Text: tag.Text}, nil
+	default:
+		s.Logger.Error(err)
+		return &rpc.Tag{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	}
+
 }
 
 // TODO: 接入微信的注册登录接口
 // TODO: 接入第三方平台的滑动验证
 // 创建一个用户
-func (s *MysqlApiServer) CreateUserSign(ctx context.Context, sign *rpc.UserLoginOrSign) (*rpc.Errors, error) {
+func (s *MysqlApiServer) CreateUserSign(ctx context.Context, sign *rpc.UserLoginOrSign) (*rpc.Null, error) {
 	md := model.UserBase{}
 	// 创建用户账户信息
 	// 创建用户信息
@@ -344,22 +408,13 @@ func (s *MysqlApiServer) CreateUserSign(ctx context.Context, sign *rpc.UserLogin
 	switch errors.Cause(err) {
 	case model.UserNameAlreadyExists:
 		s.Logger.Error(err)
-		return &rpc.Errors{
-			HttpCode: 200,
-			Code:     int32(ecode.UserDuplicate.Code()),
-			Message:  ecode.UserDuplicate.Message(),
-			Data: map[string]string{
-				"uid": sign.UserName,
-				"password": sign.UserPassword,
-			},
-		}, err
+		return &rpc.Null{}, status.Error(ecode.UserDuplicate,ecode.UserDuplicate.Message())
 	case nil:
-		break
+		return &rpc.Null{}, nil
 	default:
 		s.Logger.Error(err)
-		return &rpc.Errors{}, err
+		return &rpc.Null{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	}
-	return &rpc.Errors{}, nil
 }
 
 // 获取用户信息
@@ -371,10 +426,10 @@ func (s *MysqlApiServer) GetUserInfo(ctx context.Context, auth *rpc.UserAuth) (*
 		return &rpc.UserInfoShow{}, err
 	}
 	userInfo, err := md.GetUserInfo(int32(uid))
-	if err != nil {
-		s.Logger.Error(err)
-		return &rpc.UserInfoShow{}, err
-	} else {
+	switch errors.Cause(err) {
+	case model.UserDoesNotExist:
+		return &rpc.UserInfoShow{},status.Error(ecode.UserNotExist,ecode.UserNotExist.Message())
+	case nil:
 		return &rpc.UserInfoShow{
 			Uid:          userInfo.Uid,
 			Level:        userInfo.Level,
@@ -388,11 +443,14 @@ func (s *MysqlApiServer) GetUserInfo(ctx context.Context, auth *rpc.UserAuth) (*
 			UserName:     userInfo.Name,
 			UserNickName: userInfo.NickName,
 		}, nil
+	default:
+		return &rpc.UserInfoShow{},status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	}
+
 }
 
 // 更新用户信息
-func (s *MysqlApiServer) UpdateUserInfo(ctx context.Context, set *rpc.UserInfoSet) (*rpc.Errors, error) {
+func (s *MysqlApiServer) UpdateUserInfo(ctx context.Context, set *rpc.UserInfoSet) (*rpc.Null, error) {
 	md := model.UserInfo{}
 	err := md.UpdateUserInfo(&model.UserInfo{
 		Uid:      set.Uid,
@@ -406,59 +464,46 @@ func (s *MysqlApiServer) UpdateUserInfo(ctx context.Context, set *rpc.UserInfoSe
 	})
 	if err != nil {
 		s.Logger.Error(err)
+		return &rpc.Null{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	}
-	return &rpc.Errors{}, err
+	return &rpc.Null{}, nil
 }
 
 // 删除用户
-func (s *MysqlApiServer) DeleteUserSign(ctx context.Context, sign *rpc.UserAuth) (*rpc.Errors, error) {
+func (s *MysqlApiServer) DeleteUserSign(ctx context.Context, sign *rpc.UserAuth) (*rpc.Null, error) {
 	md := model.UserBase{}
 	uid, err := strconv.Atoi(sign.Uid)
 	if err != nil {
 		s.Logger.Error(errors.WithStack(err))
-		return &rpc.Errors{
-			HttpCode: 200,
-			Code:     int32(ecode.ServerErr.Code()),
-			Message:  ecode.ServerErr.Message(),
-		}, err
+		return &rpc.Null{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	}
 	err = md.DeleteUser(int32(uid))
 	if err != nil {
 		s.Logger.Error(err)
-		return &rpc.Errors{}, err
+		return &rpc.Null{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	}
-	return &rpc.Errors{}, nil
+	return &rpc.Null{}, nil
 }
 
 // 验证成功之后会返回uid,user_name供调用者签钥
-func (s *MysqlApiServer) CheckUserStatus(ctx context.Context, sign *rpc.UserLoginOrSign) (*rpc.Errors, error) {
+// err格式 code : 0 -> message : 具体的业务错误码
+func (s *MysqlApiServer) CheckUserStatus(ctx context.Context, sign *rpc.UserLoginOrSign) (*rpc.BaseData, error) {
 	md := model.UserBase{}
 	err := md.CheckUser(sign.UserName, sign.UserPassword)
 	switch errors.Cause(err) {
 	case model.UserDoesNotExist:
 		s.Logger.Error(err)
-		return &rpc.Errors{
-			HttpCode: 200,
-			Code:     int32(ecode.UserNotExist.Code()),
-			Message:  ecode.UserNotExist.Message(),
-		}, err
+		return &rpc.BaseData{}, status.Error(ecode.UserNotExist, ecode.UserNotExist.Message())
 	case model.UserPasswordORUserNameErr:
-		return &rpc.Errors{
-			HttpCode: 200,
-			Code:     int32(ecode.UsernameOrPasswordErr.Code()),
-			Message:  ecode.UsernameOrPasswordErr.Message(),
-		}, err
+		return &rpc.BaseData{}, status.Error(ecode.UsernameOrPasswordErr,ecode.UsernameOrPasswordErr.Message())
 	case nil:
-		return &rpc.Errors{
-			HttpCode: 200,
-			Code:     int32(ecode.OK.Code()),
-			Message:  ecode.OK.Message(),
+		return &rpc.BaseData{
 			Data: map[string]string{
 				"uid":       strconv.Itoa(int(md.Uid)),
 				"user_name": md.Name,
 			},
 		}, nil
 	default:
-		return &rpc.Errors{}, nil
+		return &rpc.BaseData{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	}
 }

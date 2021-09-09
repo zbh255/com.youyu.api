@@ -26,6 +26,7 @@ var (
 	AddArticleFabulousErr   = New(10206) // 添加文章点赞失败
 	DelArticleFabulousErr   = New(10207) // 删除文章点赞失败
 	GetArticleStatisticsErr = New(10208) // 获取文章文章的热度、点赞信息失败
+	AddArticleCommentNumErr = New(10209) // 添加文章评论数失败
 
 	// 广告模块
 	GetAdvertisementErr = New(10301) // 获取广告失败
@@ -37,6 +38,11 @@ var (
 	UserSignErr   = New(10401) //用户注册失败
 	UserLoginErr   = New(10402) //用户登录失败
 	UserDeleteErr = New(10403) // 用户删除失败
+
+	// Tag 标签模块
+	TagNameAlreadyExists = New(10501) // 标签名已经存在
+	TagNameNotExists = New(10502) // 标签名不存在
+	TagIdNotExists = New(10503) // 标签id不存在
 
 	// 用户消息模块
 

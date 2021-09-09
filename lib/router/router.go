@@ -34,6 +34,11 @@ func InitRouter(r *gin.Engine, logger log.Logger) {
 	// ?advertisement_id=0
 	v1.DELETE("/advertisement", ControllerAdvertisement.DelAdvertisement)
 
+	// ?type=text?text=haha
+	// ?type=id?id=11
+	v1.GET("/tag")
+	v1.POST("/tag")
+
 	// v1鉴权
 	v1.Use(middleware.JwtAuth())
 	{

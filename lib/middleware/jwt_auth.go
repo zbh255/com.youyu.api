@@ -30,6 +30,8 @@ func JwtAuth() gin.HandlerFunc {
 		// 获取签名密钥
 		jwtC := auth.New(controller.TokenSigningKey)
 		myClaims, err := jwtC.ParseToken(tokenHeadInfo[1])
+		// 构造正确的值使流程无需改变
+		if err == nil {err = &jwt.ValidationError{Errors: 0}}
 		switch err.(*jwt.ValidationError).Errors {
 		case jwt.ValidationErrorExpired:
 			// token 过时

@@ -8,23 +8,23 @@ service MysqlApi {
   // 添加文章，添加成功后返回文章id供测试程序测试
   rpc addArticle(Article) returns (Article) {};
   rpc getArticle(getArticle_request) returns (Article) {};
-  rpc updateArticle(Article) returns (Errors) {}
-  rpc delArticle(getArticle_request) returns (Errors) {}
+  rpc updateArticle(Article) returns (null) {}
+  rpc delArticle(getArticle_request) returns (null) {}
   rpc getArticleList(ArticleOptions) returns (Article_Response) {};
 
 //  获取文章热度点赞的选项
   rpc getArticleStatistics(getArticle_request) returns (ArticleStatistics) {};
-  rpc addArticleStatisticsFabulous(getArticle_request) returns (Errors) {};
-  rpc addArticleStatisticsHot(getArticle_request) returns (Errors) {};
-  rpc addArticleStatisticsCommentNum(getArticle_request) returns (Errors) {};
+  rpc addArticleStatisticsFabulous(getArticle_request) returns (null) {};
+  rpc addArticleStatisticsHot(getArticle_request) returns (null) {};
+  rpc addArticleStatisticsCommentNum(getArticle_request) returns (null) {};
   // 删除文章点赞的接口
-  rpc delArticleStatisticsFabulous(getArticle_request) returns (Errors) {}
+  rpc delArticleStatisticsFabulous(getArticle_request) returns (null) {}
 
 //  广告rpc接口
-  rpc  addAdvertisement(advertisement) returns (Errors) {}
+  rpc  addAdvertisement(advertisement) returns (null) {}
   rpc  getAdvertisement(advertisement_request) returns (advertisement){}
-  rpc  updateAdvertisement(advertisement) returns (Errors) {}
-  rpc  delAdvertisement(advertisement_request) returns(Errors) {}
+  rpc  updateAdvertisement(advertisement) returns (null) {}
+  rpc  delAdvertisement(advertisement_request) returns(null) {}
   rpc  getAdvertisementList(ArticleOptions) returns (advertisement_response);
   // 标签rpc接口
   rpc getTagText(tag) returns (tag);
@@ -32,12 +32,12 @@ service MysqlApi {
   rpc addTag(tag) returns (null);
   rpc delTag(tag) returns (null);
   // 用户rpc接口
-  rpc createUserSign(user_login_or_sign) returns (Errors) {}
+  rpc createUserSign(user_login_or_sign) returns (null) {}
   rpc getUserInfo(user_auth) returns (user_info_show) {}
-  rpc updateUserInfo(user_info_set) returns (Errors);
-  rpc deleteUserSign(user_auth) returns (Errors);
+  rpc updateUserInfo(user_info_set) returns (null);
+  rpc deleteUserSign(user_auth) returns (null);
   // 验证用户是否存在,data_rpc不负责登录等存取token的逻辑
-  rpc checkUserStatus(user_login_or_sign) returns (Errors);
+  rpc checkUserStatus(user_login_or_sign) returns (BaseData);
   // 订单rpc接口
 }
 
@@ -97,10 +97,7 @@ message ArticleLinkTab {
   int32 article_comment_num = 11;
 }
 
-message Errors {
-  int32 http_code = 1;
-  int32 code = 2;
-  string message = 3;
+message BaseData{
   // 存储一些返回的数据，比如uid和user_name
   map<string,string> Data= 4;
 }

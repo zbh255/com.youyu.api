@@ -15,28 +15,42 @@ func (t *Tags) AddTag(text string) error {
 	//}
 	t.Text = text
 	// 标签的文字不能相同
-	if num := DB.Where("text = ?", text).First(t).RowsAffected; num == 0 {
-		return errors.Wrap(DB.Create(t).Error, "add tag failed")
+	result := DB.Where("text = ?", t.Text).First(t)
+	if result.RowsAffected > 0 {
+		return errors.WithStack(TagNameAlreadyExists)
 	} else {
-		return errors.Wrap(CreateSameExistence, "tag text cannot be the same")
+		return errors.WithStack(DB.Create(t).Error)
 	}
+	//if num := DB.Where("text = ?", text).First(t).RowsAffected; num > 0 {
+	//	return errors.Wrap(DB.Create(t).Error, "add tag failed")
+	//} else {
+	//	return errors.Wrap(CreateSameExistence, "tag text cannot be the same")
+	//}
 }
 
 func (t *Tags) GetTagText(tid int32) (string, error) {
-	return t.Text, errors.Wrap(DB.Where("tid = ?", tid).First(t).Error, "get tag text failed")
+	result := DB.Where("tid = ?",tid).First(t)
+	if result.RowsAffected == 0 {
+		return "",errors.WithStack(TagIdNotExists)
+	} else {
+		return t.Text, errors.WithStack(result.Error)
+	}
 }
 
+// pkg/errors处理错误
+// text 不存在时返回自定义错误
+// 操作数据时有错误则返回gorm 的原始错误
 func (t *Tags) GetTagInt32Id(text string) (int32, error) {
-	//db, err := DB.GetConnect()
-	//if err != nil {
-	//	return -1, errors.WithStack(err)
-	//}
-	//if db == nil {
-	//	return -1, errors.New("mysql server connection failed")
-	//}
-	return t.Tid, errors.Wrap(DB.Where("text = ?", text).First(t).Error, "get tag int32 id failed")
+	result := DB.Where("text = ?", text).First(t)
+	if result.RowsAffected == 0 {
+		return -1, errors.WithStack(TagNameNotExists)
+	} else {
+		return t.Tid, errors.WithStack(result.Error)
+	}
+
 }
 
+// NOTE: 非给用户客户端开放的接口，慎用
 func (t *Tags) DelTag(tid int32) error {
 	err := DB.Transaction(func(tx *gorm.DB) error {
 		// 根据主键删除数据

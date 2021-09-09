@@ -72,7 +72,7 @@ func (ub *UserBase) CheckUser(userName string, userPassword string) error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	if DB.Where("name = ?,password = ?", userName, string(result)).First(ub).RowsAffected == 0 {
+	if DB.Where("name = ? AND password = ?", userName, string(result)).First(ub).RowsAffected == 0 {
 		return errors.WithStack(UserPasswordORUserNameErr)
 	}
 	return nil

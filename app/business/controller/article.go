@@ -3,6 +3,7 @@ package controller
 import (
 	rpc "com.youyu.api/app/rpc/proto_files"
 	"com.youyu.api/lib/ecode"
+	"com.youyu.api/lib/ecode/status"
 	"com.youyu.api/lib/log"
 	"context"
 	"github.com/gin-gonic/gin"
@@ -58,18 +59,15 @@ func (a *Article) AddArticle(c *gin.Context) {
 	// TODO:使用登录的用户uid作为文章编写者
 	a.articleJson.Uid = 1
 	_, err = client.AddArticle(context.Background(), a.articleJson)
-	if err != nil {
+	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.AddArticleErr.Code(),
-			"message": ecode.AddArticleErr.Message(),
-			"data":    nil,
+			"code":    st.Code,
+			"message": st.Message,
 		})
-		return
 	} else {
 		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.OK.Code(),
-			"message": ecode.OK.Message(),
-			"data":    nil,
+			"code":    ecode.ServerErr.Code(),
+			"message": ecode.ServerErr.Message(),
 		})
 	}
 }
@@ -103,20 +101,28 @@ func (a *Article) GetArticle(c *gin.Context) {
 	//	})
 	//	return
 	//}
-	if err != nil {
+	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.GetArticleErr.Code(),
-			"message": ecode.GetArticleErr.Message(),
-			"data":    nil,
-		})
-		return
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.OK.Code(),
-			"message": ecode.OK.Message(),
+			"code":    st.Code,
+			"message": st.Message,
 			"data":    result,
 		})
 	}
+
+	//if err != nil {
+	//	c.JSON(http.StatusOK, gin.H{
+	//		"code":    ecode.GetArticleErr.Code(),
+	//		"message": ecode.GetArticleErr.Message(),
+	//		"data":    nil,
+	//	})
+	//	return
+	//} else {
+	//	c.JSON(http.StatusOK, gin.H{
+	//		"code":    ecode.OK.Code(),
+	//		"message": ecode.OK.Message(),
+	//		"data":    result,
+	//	})
+	//}
 }
 
 // 删除文章
@@ -135,17 +141,11 @@ func (a *Article) DelArticle(c *gin.Context) {
 	// 退出归还连接
 	defer ConnectAndConf.DataRpcConnPool.Put(lis)
 	_, err = client.DelArticle(context.Background(), &rpc.GetArticleRequest{ArticleId: articleId})
-	if err != nil {
+
+	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.DelArticleErr.Code(),
-			"message": ecode.DelArticleErr.Message(),
-			"data":    nil,
-		})
-		return
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.OK.Code(),
-			"message": ecode.OK.Message(),
+			"code":    st.Code,
+			"message": st.Message,
 			"data":    nil,
 		})
 	}
@@ -175,17 +175,10 @@ func (a *Article) SetArticle(c *gin.Context) {
 	// 退出归还连接
 	defer ConnectAndConf.DataRpcConnPool.Put(lis)
 	_, err = client.UpdateArticle(context.Background(), a.articleJson)
-	if err != nil {
+	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.UpdArticleErr.Code(),
-			"message": ecode.UpdArticleErr.Message(),
-			"data":    nil,
-		})
-		return
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.OK.Code(),
-			"message": ecode.OK.Message(),
+			"code":    st.Code,
+			"message": st.Message,
 			"data":    nil,
 		})
 	}
@@ -220,17 +213,10 @@ func (a *Article) ReduceArticleStatisticsFabulous(c *gin.Context) {
 	// 退出归还连接
 	defer ConnectAndConf.DataRpcConnPool.Put(lis)
 	_, err = client.DelArticleStatisticsFabulous(context.Background(), &rpc.GetArticleRequest{ArticleId: articleId})
-	if err != nil {
+	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.DelArticleFabulousErr.Code(),
-			"message": ecode.DelArticleFabulousErr.Message(),
-			"data":    nil,
-		})
-		return
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.OK.Code(),
-			"message": ecode.OK.Message(),
+			"code":    st.Code,
+			"message": st.Message,
 			"data":    nil,
 		})
 	}
@@ -251,17 +237,10 @@ func (a *Article) AddArticleStatisticsHot(c *gin.Context) {
 	// 退出归还连接
 	defer ConnectAndConf.DataRpcConnPool.Put(lis)
 	_, err = client.AddArticleStatisticsHot(context.Background(), &rpc.GetArticleRequest{ArticleId: articleId})
-	if err != nil {
+	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.AddArticleHotErr.Code(),
-			"message": ecode.AddArticleHotErr.Message(),
-			"data":    nil,
-		})
-		return
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.OK.Code(),
-			"message": ecode.OK.Message(),
+			"code":    st.Code,
+			"message": st.Message,
 			"data":    nil,
 		})
 	}
@@ -282,16 +261,10 @@ func (a *Article) AddArticleStatisticsFabulous(c *gin.Context) {
 	// 退出归还连接
 	defer ConnectAndConf.DataRpcConnPool.Put(lis)
 	_, err = client.AddArticleStatisticsFabulous(context.Background(), &rpc.GetArticleRequest{ArticleId: articleId})
-	if err != nil {
+	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.AddArticleFabulousErr.Code(),
-			"message": ecode.AddArticleFabulousErr.Code(),
-			"data":    nil,
-		})
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.OK.Code(),
-			"message": ecode.OK.Message(),
+			"code":    st.Code,
+			"message": st.Message,
 			"data":    nil,
 		})
 	}
@@ -322,16 +295,10 @@ func (a *Article) GetArticleStatistics(c *gin.Context) {
 	//	})
 	//	return
 	//}
-	if err != nil {
+	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.GetArticleStatisticsErr.Code(),
-			"message": ecode.GetArticleStatisticsErr.Message(),
-			"data":    result,
-		})
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.OK.Code(),
-			"message": ecode.OK.Message(),
+			"code":    st.Code,
+			"message": st.Message,
 			"data":    result,
 		})
 	}

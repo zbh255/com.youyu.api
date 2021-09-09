@@ -3,6 +3,7 @@ package controller
 import (
 	rpc "com.youyu.api/app/rpc/proto_files"
 	"com.youyu.api/lib/ecode"
+	"com.youyu.api/lib/ecode/status"
 	"com.youyu.api/lib/log"
 	"context"
 	"github.com/gin-gonic/gin"
@@ -45,17 +46,10 @@ func (a *Advertisement) GetAdvertisement(c *gin.Context) {
 	//	})
 	//	return
 	//}
-	if err != nil {
+	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.GetAdvertisementErr.Code(),
-			"message": ecode.GetAdvertisementErr.Message(),
-			"data":    result,
-		})
-		return
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.OK.Code(),
-			"message": ecode.OK.Message(),
+			"code":    st.Code,
+			"message": st.Message,
 			"data":    result,
 		})
 	}
@@ -84,17 +78,10 @@ func (a *Advertisement) AddAdvertisement(c *gin.Context) {
 		return
 	}
 	_, err = client.AddAdvertisement(context.Background(), a.advertisementJson)
-	if err != nil {
+	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.AddAdvertisementErr.Code(),
-			"message": ecode.AddAdvertisementErr.Message(),
-			"data":    nil,
-		})
-		return
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.OK.Code(),
-			"message": ecode.OK.Message(),
+			"code":    st.Code,
+			"message": st.Message,
 			"data":    nil,
 		})
 	}
@@ -123,17 +110,10 @@ func (a *Advertisement) UpdateAdvertisement(c *gin.Context) {
 		return
 	}
 	_, err = client.UpdateAdvertisement(context.Background(), a.advertisementJson)
-	if err != nil {
+	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.UpdAdvertisementErr.Code(),
-			"message": ecode.UpdAdvertisementErr.Message(),
-			"data":    nil,
-		})
-		return
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.OK.Code(),
-			"message": ecode.OK.Message(),
+			"code":    st.Code,
+			"message": st.Message,
 			"data":    nil,
 		})
 	}
@@ -152,17 +132,10 @@ func (a *Advertisement) DelAdvertisement(c *gin.Context) {
 		return
 	}
 	_, err = client.DelAdvertisement(context.Background(), &rpc.AdvertisementRequest{AdvertisementId: int32(id)})
-	if err != nil {
+	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.DelAdvertisementErr.Code(),
-			"message": ecode.DelAdvertisementErr.Message(),
-			"data":    nil,
-		})
-		return
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.OK.Code(),
-			"message": ecode.OK.Message(),
+			"code":    st.Code,
+			"message": st.Message,
 			"data":    nil,
 		})
 	}

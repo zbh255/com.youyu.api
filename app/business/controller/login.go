@@ -4,6 +4,7 @@ package controller
 import (
 	rpc "com.youyu.api/app/rpc/proto_files"
 	"com.youyu.api/lib/ecode"
+	"com.youyu.api/lib/ecode/status"
 	"com.youyu.api/lib/log"
 	"context"
 	"encoding/base64"
@@ -94,24 +95,12 @@ func (l *SignAndLogin) CreateSign(c *gin.Context) {
 		return
 	}
 	// TODO:校验验证码和第三方验证系统token
-	loginErrors, err := dataClient.CreateUserSign(context.Background(), jsons)
-	if loginErrors != nil && loginErrors.Code != 0 {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    loginErrors.Code,
-			"message": loginErrors.Message,
-		})
-		return
-	}
-	if err != nil {
-		l.Logger.Error(err)
-		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.UserSignErr.Code(),
-			"message": ecode.UserSignErr.Message(),
-		})
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.OK.Code(),
-			"message": ecode.OK.Message(),
+	_, grpcErr := dataClient.CreateUserSign(context.Background(), jsons)
+	if st,bl := status.FromError(grpcErr); bl {
+		c.JSON(http.StatusOK,gin.H{
+			"code": st.Code,
+			"message":st.Message,
+			"data":nil,
 		})
 	}
 }
@@ -136,18 +125,11 @@ func (l *SignAndLogin) DeleteSign(c *gin.Context) {
 		l.Logger.Error(err)
 		return
 	}
-	loginErr, err := dataClient.DeleteUserSign(context.Background(), &rpc.UserAuth{Uid: uidString})
-	if loginErr != nil && loginErr.Code != 200 {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    loginErr.Code,
-			"message": loginErr.Message,
-		})
-		return
-	}
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.UserDeleteErr.Code(),
-			"message": ecode.UserDeleteErr.Message(),
+	_, grpcErr := dataClient.DeleteUserSign(context.Background(), &rpc.UserAuth{Uid: uidString})
+	if st,_ := status.FromError(grpcErr); st.Code != int32(ecode.OK) {
+		c.JSON(http.StatusOK,gin.H{
+			"code": st.Code,
+			"message": st.Message,
 		})
 		return
 	}
@@ -229,7 +211,7 @@ func (l *SignAndLogin) CreateLoginState(c *gin.Context) {
 	}
 	// 解密密码
 	rsa := go_encrypt.NewCoder().GetEncrypted().RsaCoder(go_encrypt.BitSize1024, nil, nil).
-		SetPrivateKeyPem([]byte(rsaKey.PrivateKey)).Decode([]byte(decodeBytes))
+		SetPrivateKeyPem([]byte(rsaKey.PrivateKey)).Decode(decodeBytes)
 	if rsa.Err() != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.AccessKeyErr.Code(),
@@ -252,24 +234,16 @@ func (l *SignAndLogin) CreateLoginState(c *gin.Context) {
 		return
 	}
 	// TODO:校验验证码和第三方验证系统token
-	loginErrors, err := dataClient.CheckUserStatus(context.Background(), jsons)
-	if loginErrors != nil && loginErrors.Code != 200 {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    loginErrors.Code,
-			"message": loginErrors.Message,
-		})
-		return
-	}
-	if err != nil {
-		l.Logger.Error(err)
-		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.UserLoginErr.Code(),
-			"message": ecode.UserLoginErr.Message(),
+	baseData, grpcErr := dataClient.CheckUserStatus(context.Background(), jsons)
+	if st,_ := status.FromError(grpcErr); st.Code != int32(ecode.OK) {
+		c.JSON(http.StatusOK,gin.H{
+			"code": st.Code,
+			"message": st.Message,
 		})
 		return
 	}
 	// 校验成功则给用户签钥
-	uid, err := strconv.Atoi(loginErrors.Data["uid"])
+	uid, err := strconv.Atoi(baseData.Data["uid"])
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.ServerErr.Code(),

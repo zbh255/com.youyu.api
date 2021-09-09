@@ -1,88 +1,56 @@
-# 数据库接入层rpc的地址
 [data_rpc_server]
-    ip = "127.0.0.1"
-    port = "5000"
+  ip = "127.0.0.1"
+  port = "5000"
 
-# 签钥和管理用户token的rpc地址
 [secret_key_rpc_server]
-    ip = "127.0.0.1"
-    port = "5002"
+  ip = "127.0.0.1"
+  port = "5002"
 
-# rpc_server使用
-# 该栏目一下的文件为项目所使用到的组件的配置文件
-# 有子配置.sync说明会使用连接池来管理了客户端连接
 [database]
-    ip_addr = "192.168.230.128"
-    port = "3306"
-    user_name = "root"
-    user_password = "Cok774.."
-    database_name = "youyu"
-[database.sync]
-    # 最大空闲连接数
+  ip_addr = "192.168.230.128"
+  port = "3306"
+  user_name = "root"
+  user_password = "Cok774.."
+  database_name = "youyu"
+  [database.sync]
     db_max_idle_size = 200
-    # 空闲连接最大存活时间
     db_max_idle_life_time = 5
-    # 最大打开连接数
     db_max_open_conn_size = 500
-    # 连接存活时间
     db_max_conn_life_time = 10
 
 [redis]
-    ip_addr = "192.168.230.128"
-    port = "6379"
-    password = "cok774.."
-[redis.sync]
-    # 最大连接数
+  ip_addr = "192.168.230.128"
+  port = "6379"
+  password = "cok774.."
+  [redis.sync]
     max_open_conn_size = 4999
-    # 最小保持的连接数
     min_open_conn_size = 300
-    # 连接在池内存活的时间
     max_conn_life_time = 5
-    # 建立连接超时的时间
     dial_timeout = 15
-    # 当池中没有空闲连接时客户端等待空闲连接的最长时间
     pool_timeout = 10
-    # 连接池的闲置连接的超时时间
     idle_timeout = 5
 
 [server]
-    ip_addr = "127.0.0.1"
-    port = "8080"
-    protocol = "http"
-[server.sync.data_rpc]
-    # 初始化连接数
-    grpc_poll_init_cap_size = 100
-    # 最大连接数
-    grpc_poll_max_cap_size  = 500
-    # 最大空闲连接数
-    grpc_poll_max_idle-size = 200
-    # 连接存活时间
-    grpc_poll_max_idle_timeout = 10
-[server.sync.secretKey_rpc]
-    # 初始化连接数
-    grpc_poll_init_cap_size = 300
-    # 最大连接数
-    grpc_poll_max_cap_size  = 4999
-    # 最大空闲连接数
-    grpc_poll_max_idle-size = 400
-    # 连接存活时间
-    grpc_poll_max_idle_timeout = 5
+  ip_addr = "127.0.0.1"
+  port = "8080"
+  protocol = "http"
+  [server.sync]
+    [server.sync.data_rpc]
+      grpc_poll_init_cap_size = 100
+      grpc_poll_max_cap_size = 500
+      grpc_poll_max_idle-size = 200
+      grpc_poll_max_idle_timeout = 10
+    [server.sync.secretKey_rpc]
+      grpc_poll_init_cap_size = 300
+      grpc_poll_max_cap_size = 4999
+      grpc_poll_max_idle-size = 400
+      grpc_poll_max_idle_timeout = 5
 
-# 项目的配置
 [project]
-
-# 项目的权限认证相关
-[project.auth]
-    # 保留配置，将来可能会用到
+  [project.auth]
     token_type = "jwt"
-    # 保留配置，将来可能会用到
     token_signture = "HS256"
-    # token默认有效时间,注意该选项仅供测试,格式: n * 分钟
     token_timeout = 1440
-    # 默认签名密钥,16个字符为标准
     token_signture_key = "e126789F78901134"
-
-# 项目的加解密相关
-[project.encrypt]
-    # rsa密钥长度，仅供测试用途,默认为1024
+  [project.encrypt]
     rsa_Key_size = 1024
