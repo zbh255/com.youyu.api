@@ -256,8 +256,16 @@ func TestMysqlTags(t *testing.T) {
 	// 测试模型
 	rand.Seed(time.Now().UnixNano())
 	// 限定text长度为10
-	defaultText := strconv.FormatInt(rand.Int63n(999999999), 10)
-	_, err = client.AddTag(context.Background(), &rpc.Tag{Text: defaultText})
+	// 构建400个text
+	defaultTexts := make([]string,400)
+	for k := range defaultTexts {
+		defaultTexts[k] = strconv.FormatInt(rand.Int63n(999999999), 10)
+	}
+	//defaultText := strconv.FormatInt(rand.Int63n(999999999), 10)
+	err = nil
+	for _,v := range defaultTexts{
+		_, err = client.AddTag(context.Background(), &rpc.Tag{Text: []string{v}})
+	}
 	st,_ := status.FromError(err)
 	if st.Code != 0 {
 		t.Error(st.Code)
@@ -265,7 +273,7 @@ func TestMysqlTags(t *testing.T) {
 	} else {
 		t.Log("test add tag ok")
 	}
-	tag2, err := client.GetTagInt32Id(context.Background(), &rpc.Tag{Text: defaultText})
+	tag2, err := client.GetTagInt32Id(context.Background(), &rpc.Tag{Text: defaultTexts})
 	st,_ = status.FromError(err)
 	if st.Code != 0 {
 		t.Error(st.Code)
@@ -283,8 +291,9 @@ func TestMysqlTags(t *testing.T) {
 		t.Log("test get tag Text ok")
 		t.Log(tag.Text)
 	}
-
-	_, err = client.DelTag(context.Background(), &rpc.Tag{Tid: tag2.Tid})
+	for _,v := range tag2.Tid {
+		_, err = client.DelTag(context.Background(), &rpc.Tag{Tid: []int32{v}})
+	}
 	st,_ = status.FromError(err)
 	if st.Code != 0 {
 		t.Error(st.Code)

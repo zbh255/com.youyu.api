@@ -120,8 +120,8 @@ message advertisement{
 }
 
 message tag {
-  int32 tid = 1;
-  string text = 2;
+  repeated int32 tid = 1;
+  repeated string text = 2;
 }
 
 // 用户鉴权信息

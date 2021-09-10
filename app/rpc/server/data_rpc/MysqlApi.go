@@ -337,23 +337,35 @@ func (s *MysqlApiServer) DelAdvertisement(ctx context.Context, request *rpc.Adve
 	}
 }
 
+// 根据id获取Tag文本 支持批量获取
 func (s *MysqlApiServer) GetTagText(ctx context.Context, tag *rpc.Tag) (*rpc.Tag, error) {
 	md := model.Tags{}
 	text, err := md.GetTagText(tag.Tid)
-	if err != nil {
-		s.Logger.Error(errors.Cause(err))
-		return &rpc.Tag{}, err
-	} else {
-		return &rpc.Tag{
-			Tid:  tag.Tid,
-			Text: text,
-		}, nil
+	switch errors.Cause(err) {
+	case model.TagIdNotExists:
+		return &rpc.Tag{},status.Error(ecode.TagIdNotExists,ecode.TagIdNotExists.Message())
+	case nil:
+		tidList := make([]int32,len(text))
+		textList := make([]string,len(text))
+		for k := range text {
+			tidList[k] = text[k].Tid
+			textList[k] = text[k].Text
+		}
+		return &rpc.Tag{Tid: tidList, Text: textList}, nil
+	default:
+		s.Logger.Error(err)
+		return &rpc.Tag{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	}
+
 }
 
+// 添加Tag 一次只能添加一个
 func (s *MysqlApiServer) AddTag(ctx context.Context, tag *rpc.Tag) (*rpc.Null, error) {
 	md := model.Tags{}
-	err := md.AddTag(tag.Text)
+	if tag.Text == nil || len(tag.Text) == 0{
+		return &rpc.Null{},status.Error(ecode.TagNameAlreadyExists,ecode.TagNameAlreadyExists.Message())
+	}
+	err := md.AddTag(tag.Text[0])
 	switch errors.Cause(err) {
 	case model.TagNameAlreadyExists:
 		return &rpc.Null{},status.Error(ecode.TagNameAlreadyExists,ecode.TagNameAlreadyExists.Message())
@@ -367,9 +379,13 @@ func (s *MysqlApiServer) AddTag(ctx context.Context, tag *rpc.Tag) (*rpc.Null, e
 }
 
 // NOTE: 非给普通用户客户端开放的接口
+// 根据Id 删除Tag,不支持批量操作
 func (s *MysqlApiServer) DelTag(ctx context.Context, tag *rpc.Tag) (*rpc.Null, error) {
 	md := model.Tags{}
-	err := md.DelTag(tag.Tid)
+	if tag.Tid == nil || len(tag.Tid) == 0 {
+		return &rpc.Null{}, status.Error(ecode.TagIdNotExists,ecode.TagIdNotExists.Message())
+	}
+	err := md.DelTag(tag.Tid[0])
 	if err != nil {
 		s.Logger.Error(err)
 		return &rpc.Null{}, err
@@ -378,6 +394,7 @@ func (s *MysqlApiServer) DelTag(ctx context.Context, tag *rpc.Tag) (*rpc.Null, e
 	}
 }
 
+// 根据文本获取Tag Id支持批量获取
 func (s *MysqlApiServer) GetTagInt32Id(ctx context.Context, tag *rpc.Tag) (*rpc.Tag, error) {
 	md := model.Tags{}
 	int32Id, err := md.GetTagInt32Id(tag.Text)
@@ -385,7 +402,13 @@ func (s *MysqlApiServer) GetTagInt32Id(ctx context.Context, tag *rpc.Tag) (*rpc.
 	case model.TagNameNotExists:
 		return &rpc.Tag{},status.Error(ecode.TagNameNotExists,ecode.TagNameNotExists.Message())
 	case nil:
-		return &rpc.Tag{Tid: int32Id, Text: tag.Text}, nil
+		tidList := make([]int32,len(int32Id))
+		textList := make([]string,len(int32Id))
+		for k := range int32Id {
+			tidList[k] = int32Id[k].Tid
+			textList[k] = int32Id[k].Text
+		}
+		return &rpc.Tag{Tid: tidList, Text: textList}, nil
 	default:
 		s.Logger.Error(err)
 		return &rpc.Tag{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())

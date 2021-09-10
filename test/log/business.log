@@ -20,3 +20,5 @@
 {"level":"error","time":"2021-09-08T02:16:19+08:00","time":"2021-09-08T02:16:19+08:00","message":"rpc error: code = Unknown desc = user password or user name error"}
 {"level":"info","time":"2021-09-09T22:17:46+08:00","time":"2021-09-09T22:17:46+08:00","message":"sign token :eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjExLCJleHAiOjg2NDAwMDAwMDAwMDAwLCJpc3MiOiJ0ZXN0In0.lOalboMb54gZlY9I6ZDkFKWSwOq3zd1mgJQ0yzOVwFc"}
 {"level":"info","time":"2021-09-09T22:17:46+08:00","time":"2021-09-09T22:17:46+08:00","message":"user sign :11"}
+{"level":"info","time":"2021-09-10T23:35:12+08:00","time":"2021-09-10T23:35:12+08:00","message":"sign token :eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjExLCJleHAiOjg2NDAwMDAwMDAwMDAwLCJpc3MiOiJ0ZXN0In0.lOalboMb54gZlY9I6ZDkFKWSwOq3zd1mgJQ0yzOVwFc"}
+{"level":"info","time":"2021-09-10T23:35:12+08:00","time":"2021-09-10T23:35:12+08:00","message":"user sign :11"}

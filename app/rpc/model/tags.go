@@ -28,24 +28,33 @@ func (t *Tags) AddTag(text string) error {
 	//}
 }
 
-func (t *Tags) GetTagText(tid int32) (string, error) {
-	result := DB.Where("tid = ?",tid).First(t)
+// GetTagText pkg/errors处理错误
+// tid 不存在时返回自定义错误
+// 操作数据时有错误则返回gorm 的原始错误
+func (t *Tags) GetTagText(tid []int32) (tags []*Tags, err error) {
+	if tid == nil || len(tid) == 0 {
+		return nil, errors.WithStack(TagIdNotExists)
+	}
+	result := DB.Where("tid IN ?",tid).Find(&tags)
 	if result.RowsAffected == 0 {
-		return "",errors.WithStack(TagIdNotExists)
+		return nil,errors.WithStack(TagIdNotExists)
 	} else {
-		return t.Text, errors.WithStack(result.Error)
+		return tags, errors.WithStack(result.Error)
 	}
 }
 
-// pkg/errors处理错误
+// GetTagInt32Id pkg/errors处理错误
 // text 不存在时返回自定义错误
 // 操作数据时有错误则返回gorm 的原始错误
-func (t *Tags) GetTagInt32Id(text string) (int32, error) {
-	result := DB.Where("text = ?", text).First(t)
+func (t *Tags) GetTagInt32Id(text []string) (tags []*Tags, err error) {
+	if text == nil || len(text) == 0 {
+		return nil, errors.WithStack(TagNameNotExists)
+	}
+	result := DB.Where("text IN ?", text).Find(&tags)
 	if result.RowsAffected == 0 {
-		return -1, errors.WithStack(TagNameNotExists)
+		return nil, errors.WithStack(TagNameNotExists)
 	} else {
-		return t.Tid, errors.WithStack(result.Error)
+		return tags, errors.WithStack(result.Error)
 	}
 
 }

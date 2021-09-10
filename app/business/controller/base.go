@@ -25,7 +25,7 @@ type BaseApi interface {
 type BaseQuery struct {
 	Position string `form:"position" binding:"required"`
 	Type     string `form:"type" binding:"required"`
-	ClientId string `form:"client_id" binding:"-"`
+	ClientId string `form:"client_id" binding:"required"`
 }
 
 // GetIndexData 返回渲染首页需要的广告和文章的数据

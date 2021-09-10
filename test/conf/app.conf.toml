@@ -14,9 +14,9 @@
   database_name = "youyu"
   [database.sync]
     db_max_idle_size = 200
-    db_max_idle_life_time = 5
+    db_max_idle_life_time = 3
     db_max_open_conn_size = 500
-    db_max_conn_life_time = 10
+    db_max_conn_life_time = 5
 
 [redis]
   ip_addr = "192.168.230.128"
@@ -38,8 +38,8 @@
     [server.sync.data_rpc]
       grpc_poll_init_cap_size = 100
       grpc_poll_max_cap_size = 500
-      grpc_poll_max_idle-size = 200
-      grpc_poll_max_idle_timeout = 10
+      grpc_poll_max_idle-size = 300
+      grpc_poll_max_idle_timeout = 5
     [server.sync.secretKey_rpc]
       grpc_poll_init_cap_size = 300
       grpc_poll_max_cap_size = 4999

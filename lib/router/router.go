@@ -12,7 +12,9 @@ func InitRouter(r *gin.Engine, logger log.Logger) {
 	var ControllerArticle controller.ArticleApi = &controller.Article{Logger: logger}
 	var ControllerAdvertisement controller.AdvertisementApi = &controller.Advertisement{Logger: logger}
 	var ControllerBase controller.BaseApi = &controller.Base{Logger: logger}
+	ControllerTags := controller.TagsApi(&controller.Tags{Logger: logger})
 	v1 := r.Group("/v1")
+	v1.Use(middleware.ClientIdAuth())
 	// 普通用户请求的api
 	// ?article_id=0
 	//
@@ -34,14 +36,16 @@ func InitRouter(r *gin.Engine, logger log.Logger) {
 	// ?advertisement_id=0
 	v1.DELETE("/advertisement", ControllerAdvertisement.DelAdvertisement)
 
-	// ?type=text?text=haha
-	// ?type=id?id=11
-	v1.GET("/tag")
-	v1.POST("/tag")
+	// ?type=text&text=haha;chacha;baba;lala
+	// ?type=id&id=11;22;33;44;55
+	// TODO:ClientId 放在http header参数里面
+	v1.GET("/tag",ControllerTags.TagOpt)
 
 	// v1鉴权
 	v1.Use(middleware.JwtAuth())
 	{
+		// ?type=add&data=xxx
+		v1.POST("/tag",ControllerTags.TagOpt)
 		// ?article_id=0&type=hot
 		v1.PUT("/article_statistics", ControllerArticle.Options)
 		// ?article_id=0&type=fabulous
@@ -57,6 +61,7 @@ func InitRouter(r *gin.Engine, logger log.Logger) {
 	// 自动鉴权接口，有无鉴权时会返回不同的响应
 	ControllerLogin := controller.SignAndLoginApi(&controller.SignAndLogin{Logger: logger})
 	v1AutoAuth := r.Group("/v1")
+	v1AutoAuth.Use(middleware.ClientIdAuth())
 	v1AutoAuth.POST("/login", ControllerLogin.CreateLoginState)
 	v1AutoAuth.POST("/sign", ControllerLogin.CreateSign)
 
