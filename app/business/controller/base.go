@@ -3,6 +3,7 @@ package controller
 import (
 	rpc "com.youyu.api/app/rpc/proto_files"
 	"com.youyu.api/lib/ecode"
+	"com.youyu.api/lib/ecode/status"
 	"com.youyu.api/lib/log"
 	"context"
 	"github.com/gin-gonic/gin"
@@ -51,19 +52,29 @@ func (b *Base) GetIndexData(c *gin.Context) {
 	defer ConnectAndConf.DataRpcConnPool.Put(lis)
 	// 查询文章
 	articleResults, err1 := client.GetArticleList(context.Background(), op)
+	st1, _ := status.FromError(err1)
 	// 查询广告
 	advertisementResults, err2 := client.GetAdvertisementList(context.Background(), op)
-	if err1 != nil || err2 != nil {
+	st2, _ := status.FromError(err2)
+	if st1.Code != 0 || st2.Code != 0 {
+		st := &status.Status{}
+		if st1.Code != 0 {
+			st = st1
+		}
+		if st2.Code != 0 {
+			st = st2
+		}
 		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.GetAdvertisementErr.Code(),
-			"message": ecode.GetAdvertisementErr.Message(),
+			"code":    st.Code,
+			"message": st.Message,
 			"data":    nil,
 		})
 		return
 	} else {
+
 		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.OK.Code(),
-			"message": ecode.OK.Message,
+			"code":              st1.Code,
+			"message":           st1.Message,
 			"data": []interface{}{
 				advertisementResults,
 				articleResults,
