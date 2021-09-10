@@ -11,7 +11,7 @@
  Target Server Version : 50726
  File Encoding         : 65001
 
- Date: 08/09/2021 14:17:24
+ Date: 11/09/2021 00:25:53
 */
 
 SET NAMES utf8mb4;
@@ -68,7 +68,7 @@ CREATE TABLE `tags`  (
   `tid` int(11) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '标签的ID',
   `text` char(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '标签的内容，长度不能超过10',
   PRIMARY KEY (`tid`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6108 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 28843 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for user_base
@@ -81,7 +81,7 @@ CREATE TABLE `user_base`  (
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '用户名',
   PRIMARY KEY (`uid`) USING BTREE,
   INDEX `name`(`name`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for user_info
