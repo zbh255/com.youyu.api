@@ -4,12 +4,13 @@ package ecode
 
 var (
 	// JsonParseError 程序解析参数失败
-	JsonParseError = New(10001) // Json参数解析失败
-	UrlParseError  = New(10002) // Url参数解析失败
-	TomlParseError = New(10003) // Toml参数解析失败
-	XmlParseError  = New(10004) // Xml参数解析失败
-	ClientIdError  = New(10005) // 客户端uuid不合法
-	EncodeError = New(10006) // 编码错误
+	JsonParseError   = New(10001) // Json参数解析失败
+	UrlParseError    = New(10002) // Url参数解析失败
+	TomlParseError   = New(10003) // Toml参数解析失败
+	XmlParseError    = New(10004) // Xml参数解析失败
+	ClientIdError    = New(10005) // 客户端uuid不合法
+	EncodeError      = New(10006) // 编码错误
+	JsonMarshalError = New(10007) // json序列化失败
 
 	// SqlErr 外部程序出错或程序调用出错
 	SqlErr         = New(10011) // sql不合法
@@ -36,13 +37,16 @@ var (
 
 	// 用户信息模块
 	UserSignErr   = New(10401) //用户注册失败
-	UserLoginErr   = New(10402) //用户登录失败
+	UserLoginErr  = New(10402) //用户登录失败
 	UserDeleteErr = New(10403) // 用户删除失败
+	UserWechatLoginIdNotExists = New(10404) // 该微信号未绑定
+	UserPhoneLoginNotExists = New(10405) // 该手机号未绑定或未激活
+	UserEmailLoginNotExists = New(10406) // 该邮箱未绑定或未激活
 
 	// Tag 标签模块
 	TagNameAlreadyExists = New(10501) // 标签名已经存在
-	TagNameNotExists = New(10502) // 标签名不存在
-	TagIdNotExists = New(10503) // 标签id不存在
+	TagNameNotExists     = New(10502) // 标签名不存在
+	TagIdNotExists       = New(10503) // 标签id不存在
 
 	// 用户消息模块
 

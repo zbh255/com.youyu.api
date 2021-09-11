@@ -492,6 +492,7 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 		UserBindInfo: "12345678901",
 		VCode:        "1234",
 		VToken:       "12345",
+		SignType: "native",
 		Save:         0,
 	})
 	st,_ := status.FromError(err)
@@ -508,6 +509,7 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 		UserBindInfo: "12345678901",
 		VCode:        "1234",
 		VToken:       "12345",
+		SignType: "native",
 		Save:         0,
 	})
 	st,_ = status.FromError(err)
@@ -518,7 +520,13 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 		t.Error(st.Message)
 	}
 	// 测试验证用户
-	baseData, err := client.CheckUserStatus(context.Background(),&rpc.UserLoginOrSign{UserName: userName,UserPassword: userPassword})
+	baseData, err := client.CheckUserStatus(context.Background(),&rpc.UserLoginOrSign{
+		UserName:     userName,
+		UserPassword: userPassword,
+		Save:         0,
+		LoginType:    "native",
+		WechatData:   nil,
+	})
 	st,_ = status.FromError(err)
 	if st.Code != 0 {
 		t.Error(st.Code)
@@ -535,5 +543,99 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 		t.Error(st.Message)
 	} else {
 		t.Log("del user sign ok")
+	}
+	// 测试其他注册登录方式
+	// 测试通过手机号码注册用户
+	userName_phoneTest := "xiao-hui_ph"
+	userPassword_phoneTest := "16878q37q25"
+	_, err = client.CreateUserSign(context.Background(),&rpc.UserLoginOrSign{
+		UserName:     userName_phoneTest,
+		UserPassword: userPassword_phoneTest,
+		UserBindInfo: "13025800995",
+		Save:         0,
+		SignType:     "phone",
+	})
+	st,_ = status.FromError(err)
+	if st.Code != 0 {
+		t.Error(st.Code)
+		t.Error(st.Message)
+	} else {
+		t.Log("create phone user sign ok")
+	}
+	// 通过手机号码验证用户
+	data, err := client.CheckUserStatus(context.Background(),&rpc.UserLoginOrSign{
+		UserBindInfo: "13025800995",
+		Save:         0,
+		LoginType:    "phone",
+	})
+	st,_ = status.FromError(err)
+	if st.Code != 0 {
+		t.Error(st.Code)
+		t.Error(st.Message)
+	} else {
+		t.Log("check phone user ok")
+		t.Log(data.Data["user_name"])
+		t.Log(data.Data["uid"])
+	}
+	// 删除用户
+	_,err = client.DeleteUserSign(context.Background(),&rpc.UserAuth{Uid: data.Data["uid"]})
+	st,_ = status.FromError(err)
+	if st.Code != 0 {
+		t.Error(st.Code)
+		t.Error(st.Message)
+	} else {
+		t.Log("create phone user sign ok")
+	}
+	// 测试其他注册登录方式
+	// 测试通过微信注册用户
+	userName_wechatTest := "xiao-hui_we"
+	userPassword_wechatTest := "16878q37q25"
+	wechat_openid := "20060201199"
+	_, err = client.CreateUserSign(context.Background(),&rpc.UserLoginOrSign{
+		UserName:     userName_wechatTest,
+		UserPassword: userPassword_wechatTest,
+		Save:         0,
+		SignType:     "wechat",
+		WechatData: &rpc.WechatUserinfo{
+			NickName:  "小辉",
+			AvatarUrl: "https://helloworld.com/url",
+			Gender:    2,
+			Country:   "中国",
+			Province:  "广东",
+			City:      "江门",
+			Language:  "zh_CN",
+			Openid:    wechat_openid,
+		},
+	})
+	st,_ = status.FromError(err)
+	if st.Code != 0 {
+		t.Error(st.Code)
+		t.Error(st.Message)
+	} else {
+		t.Log("create wechat user sign ok")
+	}
+	// 通过微信openid验证用户
+	baseData, err = client.CheckUserStatus(context.Background(),&rpc.UserLoginOrSign{
+		Save:         0,
+		LoginType:    "wechat",
+		WechatData:   &rpc.WechatUserinfo{Openid: wechat_openid},
+	})
+	st,_ = status.FromError(err)
+	if st.Code != 0 {
+		t.Error(st.Code)
+		t.Error(st.Message)
+	} else {
+		t.Log("check wechat user ok")
+		t.Log(data.Data["user_name"])
+		t.Log(data.Data["uid"])
+	}
+	// 删除用户
+	_,err = client.DeleteUserSign(context.Background(),&rpc.UserAuth{Uid: baseData.Data["uid"]})
+	st,_ = status.FromError(err)
+	if st.Code != 0 {
+		t.Error(st.Code)
+		t.Error(st.Message)
+	} else {
+		t.Log("del wechat user sign ok")
 	}
 }

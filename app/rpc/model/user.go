@@ -14,7 +14,7 @@ CreateUser 注意:本方法会在数据库创建所有有关与User的信息
 CreateUser 在同一个事务内,通过UserInfo模型操作数据库
 CreateUser pkg/errors处理错误
 */
-func (ub *UserBase) CreateUser(userBase *UserBase) (*UserBase, error) {
+func (ub *UserBase) CreateUser(userBase *UserBase, info *UserInfo) (*UserBase, error) {
 	err := DB.Transaction(func(tx *gorm.DB) error {
 		if tx.Where("name = ?", userBase.Name).First(ub).RowsAffected > 0 {
 			return errors.WithStack(UserNameAlreadyExists)
@@ -46,15 +46,24 @@ func (ub *UserBase) CreateUser(userBase *UserBase) (*UserBase, error) {
 		if err != nil {
 			return errors.WithStack(err)
 		}
-		// 创建用户信息表
-		ui := UserInfo{}
-		userInfo := DefaultUserInfoTemplate
-		userInfo.Uid = ub.Uid
-		userInfo.Name = ub.Name
-		userInfo.CreateTime = t
-		userInfo.UpdateTime = t
+		// info为空时创建默认用户信息表
+		// 否则只修改部分数据
+		if info == nil {
+			userInfo := DefaultUserInfoTemplate
+			userInfo.Uid = ub.Uid
+			userInfo.Name = ub.Name
+			userInfo.CreateTime = t
+			userInfo.UpdateTime = t
+			info = &userInfo
+		} else {
+			// TODO:uid和user_name千万不要忘了修改
+			info.Uid = ub.Uid
+			info.Name = ub.Name
+			info.CreateTime = t
+			info.UpdateTime = t
+		}
 		// 在同一个事务内写入数据库
-		return errors.WithStack(ui.CreateUserInfo(userInfo, tx))
+		return errors.WithStack(info.CreateUserInfo(*info, tx))
 	})
 	return ub, err
 }

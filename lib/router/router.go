@@ -13,6 +13,7 @@ func InitRouter(r *gin.Engine, logger log.Logger) {
 	var ControllerAdvertisement controller.AdvertisementApi = &controller.Advertisement{Logger: logger}
 	var ControllerBase controller.BaseApi = &controller.Base{Logger: logger}
 	ControllerTags := controller.TagsApi(&controller.Tags{Logger: logger})
+	ControllerVerification := controller.VerificationApi(&controller.Verification{Logger: logger})
 	v1 := r.Group("/v1")
 	v1.Use(middleware.ClientIdAuth())
 	// 普通用户请求的api
@@ -40,6 +41,13 @@ func InitRouter(r *gin.Engine, logger log.Logger) {
 	// ?type=id&id=11;22;33;44;55
 	// TODO:ClientId 放在http header参数里面
 	v1.GET("/tag",ControllerTags.TagOpt)
+
+	// 发送验证码的接口
+	// ?type=auth_code&addr_type=email&addr=base64Str
+	v1.GET("/send",ControllerVerification.SendVerificationCode)
+	// 第三方登录接口
+	// ?protocol=wxlogin&type=wechat_login&code=xxxx
+	v1.GET("/login",ControllerVerification.OtherLogin)
 
 	// v1鉴权
 	v1.Use(middleware.JwtAuth())

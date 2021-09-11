@@ -14,9 +14,9 @@
   database_name = "youyu"
   [database.sync]
     db_max_idle_size = 200
-    db_max_idle_life_time = 3
+    db_max_idle_life_time = 5
     db_max_open_conn_size = 500
-    db_max_conn_life_time = 5
+    db_max_conn_life_time = 10
 
 [redis]
   ip_addr = "192.168.230.128"
@@ -38,8 +38,8 @@
     [server.sync.data_rpc]
       grpc_poll_init_cap_size = 100
       grpc_poll_max_cap_size = 500
-      grpc_poll_max_idle-size = 300
-      grpc_poll_max_idle_timeout = 5
+      grpc_poll_max_idle-size = 200
+      grpc_poll_max_idle_timeout = 10
     [server.sync.secretKey_rpc]
       grpc_poll_init_cap_size = 300
       grpc_poll_max_cap_size = 4999
@@ -47,10 +47,14 @@
       grpc_poll_max_idle_timeout = 5
 
 [project]
+  mode = "release"
   [project.auth]
     token_type = "jwt"
     token_signture = "HS256"
     token_timeout = 1440
     token_signture_key = "e126789F78901134"
+    [project.auth.wechat_login]
+      app_id = "wx7bdc8d0ae5bae939"
+      app_sercret = "61db58349f68649c805955fa0a6e2a82"
   [project.encrypt]
     rsa_Key_size = 1024

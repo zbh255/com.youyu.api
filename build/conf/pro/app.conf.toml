@@ -70,6 +70,7 @@
 
 # 项目的配置
 [project]
+    mode = "release"
 
 # 项目的权限认证相关
 [project.auth]
@@ -81,6 +82,11 @@
     token_timeout = 1440
     # 默认签名密钥,16个字符为标准
     token_signture_key = "e126789F78901134"
+
+# 项目的关于微信登录的选项
+[project.auth.wechat_login]
+    app_id = ""
+    app_sercret = ""
 
 # 项目的加解密相关
 [project.encrypt]

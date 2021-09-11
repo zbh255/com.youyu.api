@@ -1,9 +1,11 @@
+// 签钥服务，全面统一项目的错误处理
 package secretKey_rpc
 
 import (
 	rpc "com.youyu.api/app/rpc/proto_files"
 	"com.youyu.api/lib/auth"
 	"com.youyu.api/lib/ecode"
+	"com.youyu.api/lib/ecode/status"
 	"com.youyu.api/lib/log"
 	"com.youyu.api/lib/path"
 	"com.youyu.api/lib/utils"
@@ -74,11 +76,11 @@ func (s *SecretKeyApiServer) BindTokenToUser(ctx context.Context, user *rpc.User
 	})
 	if err != nil {
 		s.Logger.Error(errors.WithStack(err))
-		return &rpc.User{}, err
+		return &rpc.User{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	}
 	if err := s.RedisClient.Set(context.Background(), path.TokenKeyPrefix+token, strconv.FormatInt(int64(user.Uid), 10), time.Duration(user.ExpTime)).Err(); err != nil {
 		s.Logger.Error(errors.WithStack(err))
-		return &rpc.User{}, err
+		return &rpc.User{}, status.Error(ecode.RedisServerErr,ecode.RedisServerErr.Message())
 	}
 	return &rpc.User{
 		Code:    int32(ecode.OK.Code()),
@@ -92,12 +94,12 @@ func (s *SecretKeyApiServer) BindTokenToUser(ctx context.Context, user *rpc.User
 func (s *SecretKeyApiServer) ForTokenGetBindUser(ctx context.Context, user *rpc.User) (*rpc.User, error) {
 	if result, err := s.RedisClient.Get(context.Background(), path.TokenKeyPrefix+user.Token).Result(); err == redis.Nil {
 		s.Logger.Error(errors.WithStack(err))
-		return &rpc.User{}, err
+		return &rpc.User{}, status.Error(ecode.AccessTokenExpires,ecode.AccessTokenExpires.Message())
 	} else {
 		uid, err := strconv.ParseInt(result, 10, 64)
 		if err != nil {
 			s.Logger.Error(errors.WithStack(err))
-			return &rpc.User{}, err
+			return &rpc.User{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 		}
 		return &rpc.User{
 			Code:    int32(ecode.OK.Code()),
@@ -112,7 +114,7 @@ func (s *SecretKeyApiServer) ForTokenGetBindUser(ctx context.Context, user *rpc.
 func (s *SecretKeyApiServer) DeleteBindUser(ctx context.Context, user *rpc.User) (*rpc.Null, error) {
 	if err := s.RedisClient.Del(context.Background(), path.TokenKeyPrefix+user.Token).Err(); err == redis.Nil {
 		s.Logger.Error(errors.WithStack(err))
-		return &rpc.Null{}, err
+		return &rpc.Null{}, status.Error(ecode.AccessTokenExpires,ecode.AccessTokenExpires.Message())
 	} else {
 		return &rpc.Null{}, nil
 	}
@@ -127,7 +129,7 @@ func (s *SecretKeyApiServer) GetPublicKey(ctx context.Context, null *rpc.RsaKey)
 		for i := 1; i <= KeyNum; i++ {
 			if rsa := encrypt.NewCoder().GetEncrypted().RsaCoder(encrypt.BitSize1024, nil, nil).CreateKeyPairPem(); rsa.Err() != nil {
 				s.Logger.Error(errors.WithStack(rsa.Err()))
-				return &rpc.RsaKey{}, rsa.Err()
+				return &rpc.RsaKey{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 			} else {
 				// json
 				result, err := json.Marshal(&KeyJSON{
@@ -136,9 +138,13 @@ func (s *SecretKeyApiServer) GetPublicKey(ctx context.Context, null *rpc.RsaKey)
 				})
 				if err != nil {
 					s.Logger.Error(errors.WithStack(err))
-					return nil, err
+					return &rpc.RsaKey{}, status.Error(ecode.JsonParseError,ecode.JsonParseError.Message())
 				}
-				s.RedisClient.Set(context.Background(), path.PubAndPriKeyPrefix+strconv.Itoa(i), string(result), KeyTimeout)
+				err = s.RedisClient.Set(context.Background(), path.PubAndPriKeyPrefix+strconv.Itoa(i), string(result), KeyTimeout).Err()
+				if err != nil {
+					s.Logger.Error(err)
+					return &rpc.RsaKey{},status.Error(ecode.RedisServerErr,ecode.RedisServerErr.Message())
+				}
 			}
 		}
 	}
@@ -147,14 +153,14 @@ func (s *SecretKeyApiServer) GetPublicKey(ctx context.Context, null *rpc.RsaKey)
 	result, err := s.RedisClient.Get(context.Background(), path.PubAndPriKeyPrefix+strconv.Itoa(rand.Intn(10)+1)).Result()
 	if err != nil {
 		s.Logger.Error(errors.WithStack(err))
-		return &rpc.RsaKey{}, err
+		return &rpc.RsaKey{}, status.Error(ecode.RedisServerErr,ecode.RedisServerErr.Message())
 	}
 	// 分解密钥对
 	keyJson := &KeyJSON{}
 	err = json.Unmarshal([]byte(result), &keyJson)
 	if err != nil {
 		s.Logger.Error(errors.WithStack(err))
-		return &rpc.RsaKey{}, err
+		return &rpc.RsaKey{}, status.Error(ecode.JsonParseError,ecode.JsonParseError.Message())
 	}
 	// 创建副本以供查询
 	// prefix+client_id -> privateKey
@@ -169,7 +175,46 @@ func (s *SecretKeyApiServer) GetPrivateKey(ctx context.Context, key *rpc.RsaKey)
 	// 不存在则添加,调用完成即刻退出
 	if err == redis.Nil {
 		_, _ = s.GetPublicKey(context.Background(), &rpc.RsaKey{})
-		return &rpc.RsaKey{}, err
+		s.Logger.Error(errors.Wrap(err,"client_id get private key failed"))
+		return &rpc.RsaKey{}, status.Error(ecode.SecretKeyTimeout,ecode.SecretKeyTimeout.Message())
 	}
 	return &rpc.RsaKey{PublicKey: key.PublicKey, PrivateKey: privateKey, ClientId: key.ClientId}, nil
+}
+
+// code 不为0请勿绑定
+func (s *SecretKeyApiServer) BindWechatToken(ctx context.Context, info *rpc.WechatTokenInfo) (*rpc.User, error) {
+	bytes, err := json.Marshal(info)
+	if err != nil {
+		return &rpc.User{},err
+	}
+	// 生成一个token
+	signingKey := TokenSigntureKey
+	// 为该用户生成一个token
+	sha512Key, err := encrypt.NewCoder().GetAbstract().Sha512Coder(encrypt.BASE64).SetJoinStr(";").
+		Append(string(signingKey)).Append(time.Now().String()).Append(info.SessionKey).Result()
+	if err != nil {
+		s.Logger.Error(errors.WithStack(err))
+		return &rpc.User{},status.Error(ecode.ServerErr,ecode.ServerErr.Message())
+	}
+	if err = s.RedisClient.Set(context.Background(), path.TokenKeyWechatLogin + string(sha512Key),string(bytes),KeyLoginAndSignTimeOut).Err(); err != nil {
+		s.Logger.Error(errors.WithStack(err))
+		return &rpc.User{},status.Error(ecode.RedisServerErr,ecode.RedisServerErr.Message())
+	}
+	return &rpc.User{Token: string(sha512Key),ExpTime: int64(KeyLoginAndSignTimeOut)},nil
+}
+
+func (s *SecretKeyApiServer) ForWechatTokenGetInfo(ctx context.Context, user *rpc.User) (*rpc.WechatTokenInfo, error) {
+	wechatToken,err := s.RedisClient.Get(context.Background(),path.TokenKeyWechatLogin + user.Token).Result()
+	// token不存在则返回
+	if err == redis.Nil {
+		return &rpc.WechatTokenInfo{}, status.Error(ecode.AccessTokenExpires,ecode.AccessTokenExpires.Message())
+	}
+	jsons := rpc.WechatTokenInfo{}
+	err = json.Unmarshal([]byte(wechatToken),&jsons)
+	if err != nil {
+		s.Logger.Error(errors.WithStack(err))
+		return &rpc.WechatTokenInfo{},status.Error(ecode.JsonParseError,ecode.JsonParseError.Message())
+	} else {
+		return &jsons,nil
+	}
 }

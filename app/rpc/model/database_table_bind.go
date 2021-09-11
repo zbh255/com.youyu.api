@@ -73,20 +73,27 @@ type UserBase struct {
 
 // 用户信息表
 type UserInfo struct {
-	Uid         int32     `gorm:"primaryKey;column:uid"`
-	Phone       int32     `gorm:"column:phone"`
-	Email       string    `gorm:"column:email"`
-	PhoneStatus int       `gorm:"column:phone_status"`
-	EmailStatus int       `gorm:"column:email_status"`
-	CreateTime  time.Time `gorm:"column:create_time"`
-	UpdateTime  time.Time `gorm:"column:update_time"`
-	Sex         int       `gorm:"column:sex"`
-	Age         int       `gorm:"column:age"`
-	Name        string    `gorm:"column:name"`
-	NickName    string    `gorm:"column:nick_name"`
-	Addr        string    `gorm:"column:addr"`
-	Explain     string    `gorm:"column:explain"`
-	Level       int32     `gorm:"column:level"`
+	Uid                int32     `gorm:"primaryKey;column:uid"`
+	Phone              int64     `gorm:"column:phone"`
+	Email              string    `gorm:"column:email"`
+	PhoneStatus        int       `gorm:"column:phone_status"`
+	EmailStatus        int       `gorm:"column:email_status"`
+	CreateTime         time.Time `gorm:"column:create_time"`
+	UpdateTime         time.Time `gorm:"column:update_time"`
+	Sex                int       `gorm:"column:sex"`
+	Age                int       `gorm:"column:age"`
+	Name               string    `gorm:"column:name"`
+	NickName           string    `gorm:"column:nick_name"`
+	Explain            string    `gorm:"column:explain"`
+	Level              int32     `gorm:"column:level"`
+	WechatOpenId       string    `gorm:"column:wechat_openid"`
+	WechatOpenIdStatus int32     `gorm:"column:wechat_openid_status"`
+	HeadPortrait       string    `gorm:"column:head_portrait"`
+	Country            string    `gorm:"column:country"`
+	Province           string    `gorm:"column:province"`
+	City               string    `gorm:"column:city"`
+	DetailAddr         string    `gorm:"column:detail_addr"`
+	Language           string    `gorm:"column:language"`
 }
 
 // DB 数据库接口

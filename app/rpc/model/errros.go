@@ -24,4 +24,10 @@ var (
 	TagNameNotExists = errors.New("the tag name not exists")
 	// TagIdNotExists 标签id不存在
 	TagIdNotExists = errors.New("the tag id does not exist")
+	// 找不到wechat openid
+	WechatOpenIdNotExists = errors.New("the wechat openid not exists")
+	// 手机号码不存在
+	PhoneNumberNotExists = errors.New("the phone number not exists")
+	// 邮箱不存在
+	EmailNotExists = errors.New("the email not exists")
 )

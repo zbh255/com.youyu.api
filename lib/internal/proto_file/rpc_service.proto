@@ -138,32 +138,100 @@ message user_login_or_sign {
   string v_code = 4;
   string v_token = 5;
   int32 save = 6;
+  // 注册的类型native/wechat/phone/email
+  string sign_type = 7;
+  // 登录的类型native/wechat/phone/email
+  string login_type = 8;
+  // wechat注册的一些信息
+  wechat_userinfo wechat_data = 9;
 }
 
 // 用户信息
 message user_info_show {
+  // uid
   int32 uid = 1;
+  // 系统级别
   int32 level = 2;
-  int32 phone = 3;
+  // 手机号码
+  int64 phone = 3;
+  // 邮箱
   string email = 4;
+  // 手机验证状态
   int32 phone_status = 5;
+  // 邮箱验证状态
   int32 email_status = 6;
+  // 创建时间
   string create_time = 7;
+  // 性别
   int32 sex = 8;
+  // 年龄
   int32 age = 9;
+  // 用户名
   string user_name = 10;
+  // 用户昵称
   string user_nick_name = 11;
+  // 用户微信绑定状态
+  int32 wechat_status = 12;
+  // 头像url
+  string head_portrait = 13;
+  // 国家
+  string country = 14;
+  // 省份
+  string province = 15;
+  // 城市
+  string city = 16;
+  // 详细地址
+  string detail_addr = 17;
+  // 语言
+  string language = 18;
+  // 用户的简介/说明
+  string explain = 19;
 }
 
 // 用户可以随意设置的信息
 message user_info_set {
   // uid只用来查询用户
   int32 uid = 1;
-  int32 phone = 3;
+  int64 phone = 3;
   string email = 4;
   int32 sex = 8;
   int32 age = 9;
   string user_nick_name = 11;
-  string addr = 12;
-  string explain = 13;
+  string explain = 12;
+  string country = 13;
+  string province = 14;
+  string city = 15;
+  string detail_addr = 16;
+  string language = 17;
+}
+
+// wechat userinfo response
+message wechat_userinfo {
+  // 昵称
+  string nickName = 1;
+  // 头像的url
+  string avatarUrl = 2;
+  // 性别,0未知,1男,2女
+  int32 gender = 3;
+  // 国家
+  string country = 4;
+  // 省份
+  string province = 5;
+  // 城市
+  string city = 6;
+  // 语言,en英文,zh_CN简中,zh_TW,繁中
+  string language = 7;
+  // 不需要客户端填写，openid
+  string openid = 8;
+}
+
+message phone_email_login_info {
+  // 昵称
+  string nickName = 1;
+  // 性别,0未知,1男,2女
+  int32 gender = 3;
+  // 国家
+  string country = 4;
+  // 省份
+  string province = 5;
 }

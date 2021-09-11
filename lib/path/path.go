@@ -24,9 +24,12 @@ const (
 	ErrMsgJsonFileName    string = "err_msg.json"
 	RsaPublicKeyFileName  string = "pub_key.pem"
 	RsaPrivateKeyFileName string = "pri_key.pem"
-	// redis 用于区分存放签名密钥和token的key前缀
+	// SigningKeyPrefix redis 用于区分存放签名密钥和token的key前缀
 	SigningKeyPrefix string = "signing;key:"
-	TokenKeyPrefix   string = "token;key:"
-	// redis 用于区分存储公私钥和token和签名的key
+	// TokenKeyPrefix redis 用于区分登录token的key前缀
+	TokenKeyPrefix      string = "token;key:"
+	TokenKeyWechatLogin string = "token;wechat_login;key:"
+	TokenKeyWeiboLogin  string = "token;weibo_login;key:"
+	// PubAndPriKeyPrefix redis 用于区分存储公私钥和token和签名的key
 	PubAndPriKeyPrefix string = "pub.pri;x509;key:"
 )
