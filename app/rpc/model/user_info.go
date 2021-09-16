@@ -46,13 +46,16 @@ func (ui *UserInfo) GetUserInfo(uid int32) (*UserInfo, error) {
 	}
 }
 
+// UpdateUserInfo 返回自定义错误和gorm原生错误
 // UpdateUserInfo 更新用户信息
 // UserInfo模型的CreateTime会与查询的结果同步
 // 会更新UserInfo模型的UpdateTime
 func (ui *UserInfo) UpdateUserInfo(userInfo *UserInfo) error {
 	err := DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("uid = ?", userInfo.Uid).First(ui).Error; err != nil {
-			return errors.WithStack(err)
+		if result := tx.Where("uid = ?", userInfo.Uid).First(ui); result.Error != nil {
+			return errors.WithStack(result.Error)
+		} else if result.RowsAffected == 0 {
+			return errors.WithStack(UserDoesNotExist)
 		}
 		// 创建时间不变化
 		userInfo.CreateTime = ui.CreateTime
@@ -94,4 +97,49 @@ func (ui *UserInfo) CheckUserEmail(email string) (*UserInfo, error) {
 		return nil,errors.WithStack(EmailNotExists)
 	}
 	return ui,errors.WithStack(result.Error)
+}
+
+// 添加邮箱验证信息
+// 返回自定义错误和gorm原生错误
+func (ui *UserInfo)AddUserCheckInfoEmail(uid int32,email string) error {
+	err := DB.Transaction(func(tx *gorm.DB) error {
+		if tx.Where("uid = ?",uid).First(ui).RowsAffected == 0 {
+			return errors.WithStack(UserDoesNotExist)
+		}
+		ui.Email = email
+		ui.EmailStatus = 1
+		ui.UpdateTime = time.Now()
+		return errors.WithStack(tx.Save(ui).Error)
+	})
+	return err
+}
+
+// 添加手机号验证信息
+// 返回自定义错误和gorm原生错误
+func (ui *UserInfo)AddUserCheckInfoPhone(uid int32,phone int64) error {
+	err := DB.Transaction(func(tx *gorm.DB) error {
+		if tx.Where("uid = ?",uid).First(ui).RowsAffected == 0 {
+			return errors.WithStack(UserDoesNotExist)
+		}
+		ui.Phone = phone
+		ui.PhoneStatus = 1
+		ui.UpdateTime = time.Now()
+		return errors.WithStack(tx.Save(ui).Error)
+	})
+	return err
+}
+
+// 添加微信验证信息
+// 返回自定义错误和gorm原生错误
+func (ui *UserInfo)AddUserCheckInfoWechat(uid int32,openid string) error {
+	err := DB.Transaction(func(tx *gorm.DB) error {
+		if tx.Where("uid = ?",uid).First(ui).RowsAffected == 0 {
+			return errors.WithStack(UserDoesNotExist)
+		}
+		ui.WechatOpenId = openid
+		ui.WechatOpenIdStatus = 1
+		ui.UpdateTime = time.Now()
+		return errors.WithStack(tx.Save(ui).Error)
+	})
+	return err
 }

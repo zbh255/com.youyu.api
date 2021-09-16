@@ -14,6 +14,8 @@ func InitRouter(r *gin.Engine, logger log.Logger) {
 	var ControllerBase controller.BaseApi = &controller.Base{Logger: logger}
 	ControllerTags := controller.TagsApi(&controller.Tags{Logger: logger})
 	ControllerVerification := controller.VerificationApi(&controller.Verification{Logger: logger})
+	ControllerUser := controller.UserApi(&controller.UserInfo{Logger: logger})
+	ControllerResources := controller.ReSourcesApi(&controller.ReSources{Logger: logger})
 	v1 := r.Group("/v1")
 	v1.Use(middleware.ClientIdAuth())
 	// 普通用户请求的api
@@ -47,7 +49,11 @@ func InitRouter(r *gin.Engine, logger log.Logger) {
 	v1.GET("/send",ControllerVerification.SendVerificationCode)
 	// 第三方登录接口
 	// ?protocol=wxlogin&type=wechat_login&code=xxxx
-	v1.GET("/login",ControllerVerification.OtherLogin)
+	v1.GET("/login/other",ControllerVerification.OtherLogin)
+
+	// 操作用户的接口
+	v1.Use(middleware.AutoJwtAuth()).GET("/user",ControllerUser.GetUserInfo)
+
 
 	// v1鉴权
 	v1.Use(middleware.JwtAuth())
@@ -64,6 +70,17 @@ func InitRouter(r *gin.Engine, logger log.Logger) {
 		v1.DELETE("/article", ControllerArticle.DelArticle)
 		// json参数
 		v1.POST("/article", ControllerArticle.AddArticle)
+		// 获得操作上传数据权限的接口
+		// 头像
+		v1.GET("/resources/headPortrait",ControllerResources.GetUploadHeadPortraitToken)
+		// 文章图片
+		v1.GET("/resources/image/:name",ControllerResources.GetUploadArticleImageToken)
+		// 文章视频
+		v1.GET("/resources/video/:name",ControllerResources.GetUploadArticleVideoToken)
+		// 更新用户信息
+		v1.PUT("/user",ControllerUser.UpdateUserInfo)
+		// 添加用户验证信息
+		v1.POST("/user",ControllerUser.AddUserCheckInfo)
 	}
 
 	// 自动鉴权接口，有无鉴权时会返回不同的响应

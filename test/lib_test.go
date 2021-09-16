@@ -8,6 +8,7 @@ import (
 	"com.youyu.api/lib/path"
 	"com.youyu.api/lib/utils"
 	"fmt"
+	"github.com/bwmarrin/snowflake"
 	"github.com/golang-jwt/jwt"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
@@ -215,4 +216,13 @@ func TestUUid(t *testing.T) {
 		return
 	}
 	fmt.Printf("Successfully parsed: %s", u2)
+}
+
+func TestSnowFlake(t *testing.T)  {
+	node,err := snowflake.NewNode(int64(path.BusinessNodeNumber))
+	if err != nil {
+		t.Error(err)
+	}
+	id := node.Generate()
+	t.Log(id.Base58())
 }

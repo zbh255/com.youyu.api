@@ -2,6 +2,7 @@ package client
 
 import (
 	rpc "com.youyu.api/app/rpc/proto_files"
+	"errors"
 	"github.com/rs/zerolog/log"
 )
 
@@ -12,6 +13,9 @@ type IOW struct {
 }
 
 func (i *IOW) Write(p []byte) (int, error) {
+	if i.CentRpcPushStream == nil || i.FileName == "" {
+		return 0,errors.New("args is not nil")
+	}
 	err := i.CentRpcPushStream.Send(&rpc.Log{
 		FileName: i.FileName,
 		Value:    p,

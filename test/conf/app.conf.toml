@@ -48,6 +48,11 @@
 
 [project]
   mode = "release"
+  upload_image_type = [".jpg", ".png"]
+  upload_video_type = [".mp4", ".flv"]
+  cos_head_portrait_dir = "head_portrait"
+  cos_img_dir = "images"
+  cos_video_dir = "videos"
   [project.auth]
     token_type = "jwt"
     token_signture = "HS256"
@@ -58,3 +63,14 @@
       app_sercret = "61db58349f68649c805955fa0a6e2a82"
   [project.encrypt]
     rsa_Key_size = 1024
+  [project.cos]
+    appid = 1305227048
+    secret_id = "AKIDwhCRP6WhbEafTzECsHPGp7HuKVQ4RZT7"
+    secret_key = "QaS4PSEkuxmKccLo20g5E6h1HJmzvb07"
+    duration_seconds = 180
+    [project.cos.public_source_bucket]
+      name = "youyu-img"
+      region = "ap-guangzhou"
+    [project.cos.private_source_bucket]
+      name = ""
+      region = ""

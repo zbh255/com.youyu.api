@@ -218,3 +218,29 @@ func (s *SecretKeyApiServer) ForWechatTokenGetInfo(ctx context.Context, user *rp
 		return &jsons,nil
 	}
 }
+
+func (s *SecretKeyApiServer) BindUserVcCode(ctx context.Context, code *rpc.UserVcCode) (*rpc.Null, error) {
+	// 参数校验
+	err := code.Validate()
+	if err != nil {
+		return &rpc.Null{},status.Error(ecode.ParaMeterErr,err.Error())
+	}
+	err = s.RedisClient.Set(context.Background(),path.VcCodePrefix + code.BindInfo,code.VcCode,KeyLoginAndSignTimeOut).Err()
+	if err != nil {
+		return &rpc.Null{},status.Error(ecode.ServerErr,ecode.ServerErr.Message())
+	} else {
+		return &rpc.Null{},nil
+	}
+}
+
+// 不进行参数校验，因为使用不到全部参数
+func (s *SecretKeyApiServer) GetUserVcCode(ctx context.Context, code *rpc.UserVcCode) (*rpc.UserVcCode, error) {
+	result,err := s.RedisClient.Get(context.Background(),path.VcCodePrefix + code.BindInfo).Result()
+	if err == redis.Nil {
+		return &rpc.UserVcCode{},status.Error(ecode.VcCodeTimeout,ecode.VcCodeTimeout.Message())
+	} else if err != nil {
+		return &rpc.UserVcCode{},status.Error(ecode.ServerErr,ecode.ServerErr.Message())
+	} else {
+		return &rpc.UserVcCode{BindInfo: code.BindInfo,VcCode: result},nil
+	}
+}

@@ -32,4 +32,8 @@ const (
 	TokenKeyWeiboLogin  string = "token;weibo_login;key:"
 	// PubAndPriKeyPrefix redis 用于区分存储公私钥和token和签名的key
 	PubAndPriKeyPrefix string = "pub.pri;x509;key:"
+	// 存储验证码的前缀
+	VcCodePrefix string = "vc_code;key:"
+	// 雪花算法节点编号
+	BusinessNodeNumber int = 1
 )

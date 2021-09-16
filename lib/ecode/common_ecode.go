@@ -9,6 +9,7 @@ var (
 	SignCheckErr            = add(-3)   // API校验密匙错误
 	MethodNoPermission      = add(-4)   // 调用方对该Method没有权限
 	SecretKeyTimeout        = add(-5)   // 密钥已过期
+	ParaMeterErr            = add(-6)   // 参数错误
 	NoLogin                 = add(-101) // 账号未登录
 	UserDisabled            = add(-102) // 账号被封停
 	CaptchaErr              = add(-105) // 验证码错误
@@ -33,6 +34,7 @@ var (
 	LimitExceed           = add(-509) // 超出限制
 	FileNotExists         = add(-616) // 上传文件不存在
 	FileTooLarge          = add(-617) // 上传文件太大
+	FileTypeErr           = add(-618) // 上传文件的类型错误
 	FailedTooManyTimes    = add(-625) // 登录失败次数太多
 	UserNotExist          = add(-626) // 用户不存在
 	PasswordTooLeak       = add(-628) // 密码太弱
@@ -43,4 +45,6 @@ var (
 	AccessTokenSignature  = add(-659) // 令牌签名验证失败
 	AccessTokenErr        = add(-660) // 令牌不正确
 	PasswordHashExpires   = add(-662) // 密码时间戳过期
+	VcCodeTimeout         = add(-663) // 验证码已过期
+	VcCodeError           = add(-664) // 验证码错误
 )

@@ -486,14 +486,13 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 	// 测试模型
 	userName := "xiao-hui-xx"
 	userPassword := "womeiyoumima"
-	_, err = client.CreateUserSign(context.Background(),&rpc.UserLoginOrSign{
+	_, err = client.CreateUserSign(context.Background(),&rpc.UserSign{
 		UserName:     userName,
 		UserPassword: userPassword,
 		UserBindInfo: "12345678901",
 		VCode:        "1234",
 		VToken:       "12345",
-		SignType: "native",
-		Save:         0,
+		SignType: rpc.LoginAndSignType_Native,
 	})
 	st,_ := status.FromError(err)
 	if st.Code != 0 {
@@ -503,14 +502,13 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 		t.Log("create user sign ok")
 	}
 	// 重试构造错误
-	_, err = client.CreateUserSign(context.Background(),&rpc.UserLoginOrSign{
+	_, err = client.CreateUserSign(context.Background(),&rpc.UserSign{
 		UserName:     userName,
 		UserPassword: userPassword,
 		UserBindInfo: "12345678901",
 		VCode:        "1234",
 		VToken:       "12345",
-		SignType: "native",
-		Save:         0,
+		SignType: rpc.LoginAndSignType_Native,
 	})
 	st,_ = status.FromError(err)
 	if st.Code != 0 {
@@ -520,11 +518,11 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 		t.Error(st.Message)
 	}
 	// 测试验证用户
-	baseData, err := client.CheckUserStatus(context.Background(),&rpc.UserLoginOrSign{
+	baseData, err := client.CheckUserStatus(context.Background(),&rpc.UserLogin{
 		UserName:     userName,
 		UserPassword: userPassword,
 		Save:         0,
-		LoginType:    "native",
+		LoginType:    rpc.LoginAndSignType_Native,
 		WechatData:   nil,
 	})
 	st,_ = status.FromError(err)
@@ -548,12 +546,11 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 	// 测试通过手机号码注册用户
 	userName_phoneTest := "xiao-hui_ph"
 	userPassword_phoneTest := "16878q37q25"
-	_, err = client.CreateUserSign(context.Background(),&rpc.UserLoginOrSign{
+	_, err = client.CreateUserSign(context.Background(),&rpc.UserSign{
 		UserName:     userName_phoneTest,
 		UserPassword: userPassword_phoneTest,
 		UserBindInfo: "13025800995",
-		Save:         0,
-		SignType:     "phone",
+		SignType:     rpc.LoginAndSignType_Phone,
 	})
 	st,_ = status.FromError(err)
 	if st.Code != 0 {
@@ -563,10 +560,10 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 		t.Log("create phone user sign ok")
 	}
 	// 通过手机号码验证用户
-	data, err := client.CheckUserStatus(context.Background(),&rpc.UserLoginOrSign{
+	data, err := client.CheckUserStatus(context.Background(),&rpc.UserLogin{
 		UserBindInfo: "13025800995",
 		Save:         0,
-		LoginType:    "phone",
+		LoginType:    rpc.LoginAndSignType_Phone,
 	})
 	st,_ = status.FromError(err)
 	if st.Code != 0 {
@@ -591,11 +588,10 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 	userName_wechatTest := "xiao-hui_we"
 	userPassword_wechatTest := "16878q37q25"
 	wechat_openid := "20060201199"
-	_, err = client.CreateUserSign(context.Background(),&rpc.UserLoginOrSign{
+	_, err = client.CreateUserSign(context.Background(),&rpc.UserSign{
 		UserName:     userName_wechatTest,
 		UserPassword: userPassword_wechatTest,
-		Save:         0,
-		SignType:     "wechat",
+		SignType:     rpc.LoginAndSignType_Wechat,
 		WechatData: &rpc.WechatUserinfo{
 			NickName:  "小辉",
 			AvatarUrl: "https://helloworld.com/url",
@@ -615,9 +611,9 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 		t.Log("create wechat user sign ok")
 	}
 	// 通过微信openid验证用户
-	baseData, err = client.CheckUserStatus(context.Background(),&rpc.UserLoginOrSign{
+	baseData, err = client.CheckUserStatus(context.Background(),&rpc.UserLogin{
 		Save:         0,
-		LoginType:    "wechat",
+		LoginType:    rpc.LoginAndSignType_Wechat,
 		WechatData:   &rpc.WechatUserinfo{Openid: wechat_openid},
 	})
 	st,_ = status.FromError(err)
@@ -637,5 +633,130 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 		t.Error(st.Message)
 	} else {
 		t.Log("del wechat user sign ok")
+	}
+	// 测试原生方式注册用户并添加验证方式
+	userName = "xiao-hui-xx_native"
+	userPassword = "womeiyoumima"
+	_, err = client.CreateUserSign(context.Background(),&rpc.UserSign{
+		UserName:     userName,
+		UserPassword: userPassword,
+		SignType: rpc.LoginAndSignType_Native,
+	})
+	if st.Code != 0 {
+		t.Error(st.Code)
+		t.Error(st.Message)
+	} else {
+		t.Log("create user sign ok")
+	}
+	baseData, err = client.CheckUserStatus(context.Background(), &rpc.UserLogin{
+		UserName:     userName,
+		UserPassword: userPassword,
+		Save:         0,
+		LoginType:    rpc.LoginAndSignType_Native,
+		WechatData:   nil,
+	})
+	if st.Code != 0 {
+		t.Error(st.Code)
+		t.Error(st.Message)
+	} else {
+		t.Log("check native user ok")
+	}
+	// 添加邮箱验证方式
+	email := "565574327@qq.com"
+	_,err = client.AddUserCheckInfoEmail(context.Background(),&rpc.UserCheckEmail{
+		Email: email,
+		Code:  637981,
+		Ua:    &rpc.UserAuth{Uid: baseData.Data["uid"]},
+	})
+	st,_ = status.FromError(err)
+	if st.Code != 0 {
+		t.Error(st.Code)
+		t.Error(st.Message)
+	} else {
+		t.Log("add check inf email ok")
+	}
+	// 添加手机验证方式
+	phone := 13025801998
+	_,err = client.AddUserCheckInfoPhone(context.Background(),&rpc.UserCheckPhone{
+		Phone: int64(phone),
+		Code:  657890,
+		Ua:    &rpc.UserAuth{Uid: baseData.Data["uid"]},
+	})
+	st,_ = status.FromError(err)
+	if st.Code != 0 {
+		t.Error(st.Code)
+		t.Error(st.Message)
+	} else {
+		t.Log("del wechat user sign ok")
+	}
+	// 添加微信验证方式
+	openid := "wexinyonghu3389"
+	_,err = client.AddUserCheckInfoWechat(context.Background(),&rpc.UserCheckWechat{
+		Openid: openid,
+		Code:   "898989",
+		Ua:     &rpc.UserAuth{Uid: baseData.Data["uid"]},
+	})
+	st,_ = status.FromError(err)
+	if st.Code != 0 {
+		t.Error(st.Code)
+		t.Error(st.Message)
+	} else {
+		t.Log("del wechat user sign ok")
+	}
+	// 验证手机号登录
+	newBaseData, err := client.CheckUserStatus(context.Background(),&rpc.UserLogin{
+		UserBindInfo: strconv.Itoa(phone),
+		VCode:        "657890",
+		Save:         0,
+		LoginType:    rpc.LoginAndSignType_Phone,
+	})
+	st,_ = status.FromError(err)
+	if st.Code != 0 {
+		t.Error(st.Code)
+		t.Error(st.Message)
+	} else {
+		if newBaseData.Data["uid"] == baseData.Data["uid"] {
+			t.Log("check add phone check info ok")
+		}
+	}
+	// 验证邮箱登录
+	newBaseData, err = client.CheckUserStatus(context.Background(),&rpc.UserLogin{
+		UserBindInfo: email,
+		VCode:        "657890",
+		Save:         0,
+		LoginType:    rpc.LoginAndSignType_Email,
+	})
+	st,_ = status.FromError(err)
+	if st.Code != 0 {
+		t.Error(st.Code)
+		t.Error(st.Message)
+	} else {
+		if newBaseData.Data["uid"] == baseData.Data["uid"] {
+			t.Log("check add email check info ok")
+		}
+	}
+	// 验证微信登录
+	newBaseData, err = client.CheckUserStatus(context.Background(),&rpc.UserLogin{
+		VCode:        "657890",
+		Save:         0,
+		LoginType:    rpc.LoginAndSignType_Wechat,
+		WechatData: &rpc.WechatUserinfo{Openid: openid},
+	})
+	st,_ = status.FromError(err)
+	if st.Code != 0 {
+		t.Error(st.Code)
+		t.Error(st.Message)
+	} else {
+		if newBaseData.Data["uid"] == baseData.Data["uid"] {
+			t.Log("check add wechat openid check info ok")
+		}
+	}
+	// 删除添加的数据
+	_, err = client.DeleteUserSign(context.Background(), &rpc.UserAuth{Uid: newBaseData.Data["uid"]})
+	if st.Code != 0 {
+		t.Error(st.Code)
+		t.Error(st.Message)
+	} else {
+		t.Log("clean data ok")
 	}
 }

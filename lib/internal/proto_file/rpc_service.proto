@@ -4,6 +4,8 @@ package base.common.rpc_service;
 
 option go_package = "com.youyu.api/app/rpc/proto_files";
 
+import "github.com/mwitkow/go-proto-validators@v0.3.2/validator.proto";
+
 service MysqlApi {
   // 添加文章，添加成功后返回文章id供测试程序测试
   rpc addArticle(Article) returns (Article) {};
@@ -12,7 +14,7 @@ service MysqlApi {
   rpc delArticle(getArticle_request) returns (null) {}
   rpc getArticleList(ArticleOptions) returns (Article_Response) {};
 
-//  获取文章热度点赞的选项
+  //  获取文章热度点赞的选项
   rpc getArticleStatistics(getArticle_request) returns (ArticleStatistics) {};
   rpc addArticleStatisticsFabulous(getArticle_request) returns (null) {};
   rpc addArticleStatisticsHot(getArticle_request) returns (null) {};
@@ -20,7 +22,7 @@ service MysqlApi {
   // 删除文章点赞的接口
   rpc delArticleStatisticsFabulous(getArticle_request) returns (null) {}
 
-//  广告rpc接口
+  //  广告rpc接口
   rpc  addAdvertisement(advertisement) returns (null) {}
   rpc  getAdvertisement(advertisement_request) returns (advertisement){}
   rpc  updateAdvertisement(advertisement) returns (null) {}
@@ -32,12 +34,21 @@ service MysqlApi {
   rpc addTag(tag) returns (null);
   rpc delTag(tag) returns (null);
   // 用户rpc接口
-  rpc createUserSign(user_login_or_sign) returns (null) {}
-  rpc getUserInfo(user_auth) returns (user_info_show) {}
+  rpc createUserSign(user_sign) returns (null) {}
+  // 获得自己的信息
+  rpc getUserInfoInSelf(user_auth) returns (user_info_show) {}
+  // 根据uid获取其他用户的公开信息
+  rpc getUserInfoInOther(user_auth) returns (user_info_other_show) {}
   rpc updateUserInfo(user_info_set) returns (null);
   rpc deleteUserSign(user_auth) returns (null);
   // 验证用户是否存在,data_rpc不负责登录等存取token的逻辑
-  rpc checkUserStatus(user_login_or_sign) returns (BaseData);
+  rpc checkUserStatus(user_login) returns (BaseData);
+  // 添加用户验证信息
+  rpc AddUserCheckInfoPhone(user_check_phone) returns (null);
+  rpc AddUserCheckInfoEmail(user_check_email) returns (null);
+  rpc AddUserCheckInfoWechat(user_check_wechat) returns (null);
+  // 添加用户头像
+  rpc AddUserHeadPortrait(user_head_portrait_set) returns (null);
   // 订单rpc接口
 }
 
@@ -130,23 +141,83 @@ message user_auth {
   string token = 2;
 }
 
+// 用户手机验证信息
+message user_check_phone {
+  int64 phone = 1 [
+    (validator.field) = {length_eq:11}
+  ];
+  int32 code = 2 [
+    (validator.field) = {length_eq:6}
+  ];
+  user_auth ua = 3;
+}
+
+// 用户邮箱验证信息
+message user_check_email {
+  string email = 1 [
+    (validator.field) = {regex:"^[0-9A-Za-z][\\.-_0-9A-Za-z]*@[0-9A-Za-z]+(?:\\.[0-9A-Za-z]+)+$"}
+  ];
+  int32 code = 2 [
+    (validator.field) = {length_eq:6}
+  ];
+  user_auth ua = 3;
+}
+
+// 用户微信验证信息
+message user_check_wechat {
+  string openid = 1 [
+    (validator.field) = {string_not_empty:true}
+  ];
+  string code = 2 [
+    (validator.field) = {string_not_empty:true}
+  ];
+  user_auth ua = 3;
+}
+
+enum LoginAndSignType {
+  Native = 0;
+  Phone = 1;
+  Email = 2;
+  Wechat = 3;
+}
+
 // 用户注册登录信息
-message user_login_or_sign {
+message user_sign {
   string user_name = 1;
   string user_password = 2;
   string user_bind_info = 3;
   string v_code = 4;
   string v_token = 5;
-  int32 save = 6;
+  string v_auth_token = 6;
   // 注册的类型native/wechat/phone/email
-  string sign_type = 7;
-  // 登录的类型native/wechat/phone/email
-  string login_type = 8;
+  LoginAndSignType sign_type = 7 [
+    (validator.field) = {is_in_enum:true}
+  ];
   // wechat注册的一些信息
   wechat_userinfo wechat_data = 9;
 }
 
-// 用户信息
+message user_login {
+  string user_name = 1;
+  string user_password = 2;
+  string user_bind_info = 3;
+  string v_code = 4;
+  // 第三方人机验证系统的token,用于查询结果
+  string v_token = 5;
+  // 本服务器的第三方登录系统签发的token
+  string v_auth_token = 6;
+  int32 save = 7 [
+    (validator.field) = {int_gt:-1,int_lt:3}
+  ];
+  // 登录的类型native/wechat/phone/email
+  LoginAndSignType login_type = 8 [
+    (validator.field) = {is_in_enum:true}
+  ];
+  // wechat注册的一些信息
+  wechat_userinfo wechat_data = 9;
+}
+
+// 用户自己查看的信息
 message user_info_show {
   // uid
   int32 uid = 1;
@@ -188,21 +259,58 @@ message user_info_show {
   string explain = 19;
 }
 
+// 非本人查询的用户信息
+message user_info_other_show {
+  // uid
+  int32 uid = 1;
+  // 创建时间
+  string create_time = 7;
+  // 性别
+  int32 sex = 8;
+  // 年龄
+  int32 age = 9;
+  // 用户昵称
+  string user_nick_name = 11;
+  // 头像url
+  string head_portrait = 13;
+  // 国家
+  string country = 14;
+  // 省份
+  string province = 15;
+  // 城市
+  string city = 16;
+  // 语言
+  string language = 18;
+  // 用户的简介/说明
+  string explain = 19;
+}
+
 // 用户可以随意设置的信息
 message user_info_set {
   // uid只用来查询用户
   int32 uid = 1;
-  int64 phone = 3;
-  string email = 4;
-  int32 sex = 8;
-  int32 age = 9;
-  string user_nick_name = 11;
-  string explain = 12;
+  int32 sex = 8 [
+    (validator.field) = {int_gt:-1,int_lt:3}
+  ];
+  int32 age = 9 [
+    (validator.field) = {int_gt:0,int_lt:160}
+  ];
+  string user_nick_name = 11 [
+    (validator.field) = {length_gt:0,length_lt:11}
+  ];
+  string explain = 12 [
+    (validator.field) = {length_gt:0,length_lt:500}
+  ];
   string country = 13;
   string province = 14;
   string city = 15;
   string detail_addr = 16;
   string language = 17;
+}
+
+message user_head_portrait_set {
+  string url = 1;
+  int32 uid = 2;
 }
 
 // wechat userinfo response

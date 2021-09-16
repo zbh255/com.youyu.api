@@ -71,6 +71,13 @@
 # 项目的配置
 [project]
     mode = "release"
+    # 各种资源允许上传的文件类型
+    upload_image_type = [".jpg",".png"]
+    upload_video_type = [".mp4",".flv"]
+    # 保存各种文件的虚拟文件夹
+    cos_head_portrait_dir = "head_portrait"
+    cos_img_dir = "images"
+    cos_video_dir = "videos"
 
 # 项目的权限认证相关
 [project.auth]
@@ -92,3 +99,20 @@
 [project.encrypt]
     # rsa密钥长度，仅供测试用途,默认为1024
     rsa_Key_size = 1024
+
+# 腾讯COS签发临时token的选项
+[project.cos]
+    appid = 1305227048
+    secret_id = "AKIDwhCRP6WhbEafTzECsHPGp7HuKVQ4RZT7"
+    secret_key = "QaS4PSEkuxmKccLo20g5E6h1HJmzvb07"
+    duration_seconds = 180
+
+# 存储公读私写数据的存储桶
+[project.cos.public_source_bucket]
+    name = "youyu-img"
+    region = "ap-guangzhou"
+
+# 存储私有读写的存储桶
+[project.cos.private_source_bucket]
+    name = ""
+    region = ""

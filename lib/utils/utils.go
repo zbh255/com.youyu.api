@@ -75,3 +75,16 @@ func CreateSigningKey(uid string) string {
 	hash.Write([]byte(uid + t + strconv.FormatInt(rand.Int63(), 10)))
 	return hex.EncodeToString(hash.Sum(nil))
 }
+
+// 判断一个字符串切片中是否有该切片
+func EqualForSlice(str string,s []string) bool {
+	if s == nil || len(s) == 0 {
+		return false
+	}
+	for _,v := range s {
+		if v == str {
+			return true
+		}
+	}
+	return false
+}

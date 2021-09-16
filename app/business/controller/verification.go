@@ -7,11 +7,15 @@ import (
 	"com.youyu.api/lib/ecode/status"
 	"com.youyu.api/lib/log"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
+	"math/rand"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 type VerificationApi interface {
@@ -98,9 +102,55 @@ func (v *Verification) WeChatLogin(c *gin.Context) {
 }
 
 func (v *Verification) WeiboLogin(c *gin.Context) {
-	panic("implement me")
+
 }
 
 func (v *Verification) SendVerificationCode(c *gin.Context) {
-	panic("implement me")
+	addr, err := base64.StdEncoding.DecodeString(c.Query("addr"))
+	rand.Seed(time.Now().UnixNano() - 2 << 8)
+	vcCode := rand.Intn(875555) + 100555
+	if err != nil {
+		c.JSON(http.StatusOK,gin.H{
+			"code":ecode.EncodeError.Code(),
+			"message":ecode.EncodeError.Message(),
+		})
+		return
+	}
+	switch c.Query("addr_type") {
+	case "email":
+		// TODO:邮箱发送验证码的逻辑
+		// 存储验证码
+		lis, client, err := LinkSecretKeyRpc()
+		if err != nil {
+			ReturnServerErrJson(c)
+			return
+		}
+		defer ConnectAndConf.SecretKeyRpcConnPool.Put(lis)
+		_, err = client.BindUserVcCode(context.Background(),&rpc.UserVcCode{BindInfo: string(addr),VcCode: strconv.Itoa(vcCode)})
+		st,_ := status.FromError(err)
+		c.JSON(http.StatusOK,gin.H{
+			"code":st.Code,
+			"message":st.Message,
+		})
+	case "phone":
+		// TODO:发送手机验证码的逻辑
+		// 存储验证码
+		lis, client, err := LinkSecretKeyRpc()
+		if err != nil {
+			ReturnServerErrJson(c)
+			return
+		}
+		defer ConnectAndConf.SecretKeyRpcConnPool.Put(lis)
+		_, err = client.BindUserVcCode(context.Background(),&rpc.UserVcCode{BindInfo: string(addr),VcCode: strconv.Itoa(vcCode)})
+		st,_ := status.FromError(err)
+		c.JSON(http.StatusOK,gin.H{
+			"code":st.Code,
+			"message":st.Message,
+		})
+	default:
+		c.JSON(http.StatusOK,gin.H{
+			"code":ecode.ParaMeterErr.Code(),
+			"message":ecode.ParaMeterErr.Message(),
+		})
+	}
 }

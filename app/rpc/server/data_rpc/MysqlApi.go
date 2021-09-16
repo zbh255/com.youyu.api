@@ -420,7 +420,7 @@ func (s *MysqlApiServer) GetTagInt32Id(ctx context.Context, tag *rpc.Tag) (*rpc.
 // TODO: 接入第三方平台的滑动验证
 // 创建一个用户
 // 如果创建用户的方式为 wechat等第三方登录非原生账号密码注册方式，请生成随机的账号密码
-func (s *MysqlApiServer) CreateUserSign(ctx context.Context, sign *rpc.UserLoginOrSign) (*rpc.Null, error) {
+func (s *MysqlApiServer) CreateUserSign(ctx context.Context, sign *rpc.UserSign) (*rpc.Null, error) {
 	md := model.UserBase{}
 	// 创建用户账户信息
 	// 创建用户信息
@@ -428,13 +428,13 @@ func (s *MysqlApiServer) CreateUserSign(ctx context.Context, sign *rpc.UserLogin
 	// 先判断注册类型
 	err := error(nil)
 	switch sign.SignType {
-	case "native":
+	case rpc.LoginAndSignType_Native:
 		_, err = md.CreateUser(&model.UserBase{
 			UserPassword: sign.UserPassword,
 			Name:         sign.UserName,
 		}, nil)
 		break
-	case "phone":
+	case rpc.LoginAndSignType_Phone:
 		userInfo := model.DefaultUserInfoTemplate
 		phone, err := strconv.ParseInt(sign.UserBindInfo, 10, 64)
 		if err != nil {
@@ -448,7 +448,7 @@ func (s *MysqlApiServer) CreateUserSign(ctx context.Context, sign *rpc.UserLogin
 			Name:         sign.UserName,
 		}, &userInfo)
 		break
-	case "email":
+	case rpc.LoginAndSignType_Email:
 		userInfo := model.DefaultUserInfoTemplate
 		userInfo.Email = sign.UserBindInfo
 		userInfo.EmailStatus = 1
@@ -458,7 +458,7 @@ func (s *MysqlApiServer) CreateUserSign(ctx context.Context, sign *rpc.UserLogin
 			Name:         sign.UserName,
 		}, &userInfo)
 		break
-	case "wechat":
+	case rpc.LoginAndSignType_Wechat:
 		userInfo := model.UserInfo{}
 		userInfo.Country = sign.WechatData.Country
 		userInfo.Province = sign.WechatData.Province
@@ -487,6 +487,7 @@ func (s *MysqlApiServer) CreateUserSign(ctx context.Context, sign *rpc.UserLogin
 	}
 }
 
+// NOTE: 废弃的APi
 // 获取用户信息
 func (s *MysqlApiServer) GetUserInfo(ctx context.Context, auth *rpc.UserAuth) (*rpc.UserInfoShow, error) {
 	md := model.UserInfo{}
@@ -532,8 +533,6 @@ func (s *MysqlApiServer) UpdateUserInfo(ctx context.Context, set *rpc.UserInfoSe
 	md := model.UserInfo{}
 	err := md.UpdateUserInfo(&model.UserInfo{
 		Uid:        set.Uid,
-		Phone:      set.Phone,
-		Email:      set.Email,
 		Sex:        int(set.Sex),
 		Age:        int(set.Age),
 		NickName:   set.UserNickName,
@@ -570,12 +569,12 @@ func (s *MysqlApiServer) DeleteUserSign(ctx context.Context, sign *rpc.UserAuth)
 // 验证成功之后会返回uid,user_name供调用者签钥
 // err格式 code : 0 -> message : 具体的业务错误码
 // 根据不同的登录类型做处理
-func (s *MysqlApiServer) CheckUserStatus(ctx context.Context, sign *rpc.UserLoginOrSign) (*rpc.BaseData, error) {
+func (s *MysqlApiServer) CheckUserStatus(ctx context.Context, sign *rpc.UserLogin) (*rpc.BaseData, error) {
 	md := model.UserBase{}
 	mdInfo := &model.UserInfo{}
 	err := error(nil)
 	switch sign.LoginType {
-	case "native":
+	case rpc.LoginAndSignType_Native:
 		err = md.CheckUser(sign.UserName, sign.UserPassword)
 		switch errors.Cause(err) {
 		case model.UserDoesNotExist:
@@ -593,17 +592,17 @@ func (s *MysqlApiServer) CheckUserStatus(ctx context.Context, sign *rpc.UserLogi
 		default:
 			return &rpc.BaseData{}, status.Error(ecode.ServerErr, ecode.ServerErr.Message())
 		}
-	case "phone":
+	case rpc.LoginAndSignType_Phone:
 		phone, err := strconv.ParseInt(sign.UserBindInfo, 10, 64)
 		if err != nil {
 			return nil, status.Error(ecode.ServerErr, ecode.ServerErr.Message())
 		}
 		mdInfo, err = mdInfo.CheckUserPhoneNumber(phone)
 		break
-	case "email":
+	case rpc.LoginAndSignType_Email:
 		mdInfo, err = mdInfo.CheckUserEmail(sign.UserBindInfo)
 		break
-	case "wechat":
+	case rpc.LoginAndSignType_Wechat:
 		mdInfo, err = mdInfo.CheckUserWechatOpenid(sign.WechatData.Openid)
 		break
 	}
@@ -624,5 +623,155 @@ func (s *MysqlApiServer) CheckUserStatus(ctx context.Context, sign *rpc.UserLogi
 		}, nil
 	default:
 		return &rpc.BaseData{}, status.Error(ecode.ServerErr, ecode.ServerErr.Message())
+	}
+}
+
+// 服务模块请自己判断获取的uid和登录的uid是否一致
+// 获取自己的信息
+func (s *MysqlApiServer) GetUserInfoInSelf(ctx context.Context, auth *rpc.UserAuth) (*rpc.UserInfoShow, error) {
+	md := model.UserInfo{}
+	uid, err := strconv.Atoi(auth.Uid)
+	if err != nil {
+		s.Logger.Error(errors.WithStack(err))
+		return &rpc.UserInfoShow{}, err
+	}
+	userInfo, err := md.GetUserInfo(int32(uid))
+	switch errors.Cause(err) {
+	case model.UserDoesNotExist:
+		return &rpc.UserInfoShow{}, status.Error(ecode.UserNotExist, ecode.UserNotExist.Message())
+	case nil:
+		return &rpc.UserInfoShow{
+			Uid:          userInfo.Uid,
+			Level:        userInfo.Level,
+			Phone:        userInfo.Phone,
+			Email:        userInfo.Email,
+			PhoneStatus:  int32(userInfo.PhoneStatus),
+			EmailStatus:  int32(userInfo.EmailStatus),
+			CreateTime:   userInfo.CreateTime.String(),
+			Sex:          int32(userInfo.Sex),
+			Age:          int32(userInfo.Age),
+			UserName:     userInfo.Name,
+			UserNickName: userInfo.NickName,
+			Country:      userInfo.Country,
+			Province:     userInfo.Province,
+			City:         userInfo.City,
+			DetailAddr:   userInfo.DetailAddr,
+			Language:     userInfo.Language,
+			WechatStatus: userInfo.WechatOpenIdStatus,
+			HeadPortrait: userInfo.HeadPortrait,
+			Explain:      userInfo.Explain,
+		}, nil
+	default:
+		return &rpc.UserInfoShow{}, status.Error(ecode.ServerErr, ecode.ServerErr.Message())
+	}
+}
+
+// 服务模块请自己判断获取的uid和登录的uid是否一致
+// 获取其他用户的信息
+func (s *MysqlApiServer) GetUserInfoInOther(ctx context.Context, auth *rpc.UserAuth) (*rpc.UserInfoOtherShow, error) {
+	md := model.UserInfo{}
+	uid, err := strconv.Atoi(auth.Uid)
+	if err != nil {
+		s.Logger.Error(errors.WithStack(err))
+		return &rpc.UserInfoOtherShow{}, err
+	}
+	userInfo, err := md.GetUserInfo(int32(uid))
+	switch errors.Cause(err) {
+	case model.UserDoesNotExist:
+		return &rpc.UserInfoOtherShow{}, status.Error(ecode.UserNotExist, ecode.UserNotExist.Message())
+	case nil:
+		return &rpc.UserInfoOtherShow{
+			Uid:          userInfo.Uid,
+			CreateTime:   userInfo.CreateTime.String(),
+			Sex:          int32(userInfo.Sex),
+			Age:          int32(userInfo.Age),
+			UserNickName: userInfo.NickName,
+			HeadPortrait: userInfo.HeadPortrait,
+			Country:      userInfo.Country,
+			Province:     userInfo.Province,
+			City:         userInfo.City,
+			Language:     userInfo.Language,
+			Explain:      userInfo.Explain,
+		}, nil
+	default:
+		return &rpc.UserInfoOtherShow{}, status.Error(ecode.ServerErr, ecode.ServerErr.Message())
+	}
+}
+
+// 添加用户的手机验证信息
+// 有参数校验
+func (s *MysqlApiServer) AddUserCheckInfoPhone(ctx context.Context, phone *rpc.UserCheckPhone) (*rpc.Null, error) {
+	// 验证参数
+	err := phone.Validate()
+	if err != nil {
+		return &rpc.Null{}, status.Error(ecode.ParaMeterErr,err.Error())
+	}
+	md := model.UserInfo{}
+	uid, err := strconv.Atoi(phone.Ua.Uid)
+	if err != nil {
+		return &rpc.Null{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
+	}
+	switch errors.Cause(md.AddUserCheckInfoPhone(int32(uid),phone.Phone)) {
+	case model.UserDoesNotExist:
+		return &rpc.Null{},status.Error(ecode.UserNotExist,ecode.UserNotExist.Message())
+	case nil:
+		return &rpc.Null{},nil
+	default:
+		return &rpc.Null{},status.Error(ecode.ServerErr,ecode.ServerErr.Message())
+	}
+}
+
+func (s *MysqlApiServer) AddUserCheckInfoEmail(ctx context.Context, email *rpc.UserCheckEmail) (*rpc.Null, error) {
+	// 验证参数
+	err := email.Validate()
+	if err != nil {
+		return &rpc.Null{}, status.Error(ecode.ParaMeterErr,err.Error())
+	}
+	md := model.UserInfo{}
+	uid,err := strconv.Atoi(email.Ua.Uid)
+	if err != nil {
+		return &rpc.Null{},status.Error(ecode.ServerErr,ecode.ServerErr.Message())
+	}
+	switch errors.Cause(md.AddUserCheckInfoEmail(int32(uid),email.Email)) {
+	case model.UserDoesNotExist:
+		return &rpc.Null{},status.Error(ecode.UserNotExist,ecode.UserNotExist.Message())
+	case nil:
+		return &rpc.Null{},nil
+	default:
+		return &rpc.Null{},status.Error(ecode.ServerErr,ecode.ServerErr.Message())
+	}
+}
+
+func (s *MysqlApiServer) AddUserCheckInfoWechat(ctx context.Context, wechat *rpc.UserCheckWechat) (*rpc.Null, error) {
+	// 验证参数
+	err := wechat.Validate()
+	if err != nil {
+		return &rpc.Null{}, status.Error(ecode.ParaMeterErr,err.Error())
+	}
+	md := model.UserInfo{}
+	uid,err := strconv.Atoi(wechat.Ua.Uid)
+	if err != nil {
+		return &rpc.Null{},status.Error(ecode.ServerErr,ecode.ServerErr.Message())
+	}
+	switch errors.Cause(md.AddUserCheckInfoWechat(int32(uid),wechat.Openid)) {
+	case model.UserDoesNotExist:
+		return &rpc.Null{},status.Error(ecode.UserNotExist,ecode.UserNotExist.Message())
+	case nil:
+		return &rpc.Null{},nil
+	default:
+		return &rpc.Null{},status.Error(ecode.ServerErr,ecode.ServerErr.Message())
+	}
+}
+
+// 添加用户头像
+func (s *MysqlApiServer) AddUserHeadPortrait(ctx context.Context, info *rpc.UserHeadPortraitSet) (*rpc.Null, error) {
+	md := model.UserInfo{}
+	switch md.UpdateUserInfo(&model.UserInfo{Uid: info.Uid,HeadPortrait: info.Url}) {
+	case model.UserDoesNotExist:
+		return &rpc.Null{},status.Error(ecode.UserNotExist,ecode.UserNotExist.Message())
+	case nil:
+		return &rpc.Null{},nil
+	default:
+		return &rpc.Null{},status.Error(ecode.ServerErr,ecode.ServerErr.Message())
 	}
 }
