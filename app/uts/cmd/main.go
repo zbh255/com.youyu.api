@@ -10,6 +10,7 @@ import (
 func main() {
 	_ = flag.String("v", "", "查看应用程序版本信息")
 	create := flag.String("c", "", "-c fileType 创建的文件类型，err_msg/ras_key")
+	read := flag.String("read","","-read 根据传入的文件名读取的文件创建一个新的文件,如从./dir/err_msg构建一个新的err_msg")
 	filePath := flag.String("p", "", "-p filePath 创建文件的路径，不指定则默认为./dir")
 
 	// 版本信息-v没有赋值参数
@@ -31,7 +32,7 @@ func main() {
 	if *create != "" {
 		switch *create {
 		case "err_msg":
-			uts.CreateBusinessErrInfoToJson(*filePath)
+			uts.CreateBusinessErrInfoToJson(*filePath,*read)
 			break
 		case "rsa_key":
 			break

@@ -8,6 +8,7 @@ import (
 	p "com.youyu.api/lib/path"
 	"com.youyu.api/lib/utils/version"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"math"
@@ -34,7 +35,7 @@ func GetAppInfoToJson() {
 
 // CreateBusinessErrInfoToJson 创建Json格式的业务错误代码对应的信息
 // path 未指定则采用lib/path下的默认值
-func CreateBusinessErrInfoToJson(path string) {
+func CreateBusinessErrInfoToJson(path string,readPath string) {
 	if path == "" {
 		path = p.ErrMsgJsonFileName
 	}
@@ -60,6 +61,19 @@ func CreateBusinessErrInfoToJson(path string) {
 	raw := make(map[int]string)
 	for _, v := range absLessZero {
 		raw[v] = ""
+	}
+	// 不等于空则读取并填入信息
+	if readPath != "" {
+		file, err := ioutil.ReadFile(readPath)
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+		err = json.Unmarshal(file, &raw)
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
 	}
 	// 写入文件
 	indent, err := json.MarshalIndent(raw, "", "\t")

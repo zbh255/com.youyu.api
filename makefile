@@ -65,7 +65,8 @@ build-linux:export GOOS=linux
 build-linux:export GOARCH=amd64
 build-linux:export GO111MODULE=on
 build-linux:export CGO_ENABLED=0
-build-linux:
+build-linux: build-shell
+build-shell:
 	# 注入版本信息并编译工具程序
 	# 提取程序名
 	#$(call getFAD, $(DIR_APP)/uts/cmd)
@@ -95,6 +96,15 @@ build-linux:
 	cd $(PROJECT_ABS_PATH) ;\
 	pwd ;\
 	done
+
+build-darwin: linux-clean
+build-darwin: linux-create
+build-darwin: export GOOS=darwin
+build-darwin: export GOARCH=amd64
+build-darwin: export GO111MODULE=on
+build-darwin: export CGO_ENABLED=0
+build-darwin: build-shell
+
 build-windows:
 	for str in $(RPC_SOURCES);\
 	do \
