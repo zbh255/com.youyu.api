@@ -6,6 +6,7 @@ import (
 	"com.youyu.api/lib/ecode"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strings"
 )
 
 func LinkDataRpc() (interface{}, rpc.MysqlApiClient, error) {
@@ -39,4 +40,12 @@ func ReturnJsonParseErrJson(c *gin.Context) {
 		"code":    ecode.JsonParseError.Code(),
 		"message": ecode.JsonParseError.Message(),
 	})
+}
+
+func GetHeaderTokenBindTheUid(c *gin.Context) string  {
+	// 获取Token
+	tokenHead := c.Request.Header.Get("Authorization")
+	tokenHeadInfo := strings.SplitN(tokenHead, " ", 2)
+	// 获取token对应的uid
+	return c.Writer.Header().Get(tokenHeadInfo[1])
 }

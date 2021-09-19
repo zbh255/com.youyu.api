@@ -20,7 +20,13 @@ service MysqlApi {
   rpc addArticleStatisticsHot(getArticle_request) returns (null) {};
   rpc addArticleStatisticsCommentNum(getArticle_request) returns (null) {};
   // 删除文章点赞的接口
-  rpc delArticleStatisticsFabulous(getArticle_request) returns (null) {}
+  rpc delArticleStatisticsFabulous(getArticle_request) returns (null) {};
+
+  // 文章评论接口
+  rpc AddComment(comment_slave) returns (null);
+  rpc GetComment(comment_slave) returns (comment_show);
+  rpc UpdateCommentStatus(update_comment_option) returns (null);
+  rpc DeleteComment(comment_slave) returns (null);
 
   //  广告rpc接口
   rpc  addAdvertisement(advertisement) returns (null) {}
@@ -79,6 +85,13 @@ message ArticleOptions {
   string order = 2;
   int32 page = 3;
   int32 pageNum = 4;
+}
+
+// 获取的文章列表类型的枚举
+enum ArticleListOption {
+  WholeArticleContent = 0;
+  BaseArticleContent = 1;
+  ArticleIdList = 2;
 }
 
 // 获取广告列表的选项
@@ -342,4 +355,85 @@ message phone_email_login_info {
   string country = 4;
   // 省份
   string province = 5;
+}
+
+enum CommentType {
+  // 文章主评论类型
+  ArticleMasterComment = 0;
+  // 文章子评论类型
+  ArticleSlaveComment = 1;
+  // 文章子评论回复类型
+  ArticleSlaveReplyComment = 2;
+}
+
+enum CommentOptions {
+  // 文章评论置顶
+  ArticleTop = 0;
+  // 文章评论取消置顶
+  ArticleCancelTop = 1;
+  // 删除文章评论
+  // NOTE: 废弃参数
+  DelArticleComment = 2;
+}
+
+// 显示评论数据主评论结构
+message comment_master_show {
+  int64 comment_mid = 1;
+  CommentType type = 2 [
+    (validator.field) = {is_in_enum:true}
+  ];
+  string text = 3 [
+    (validator.field) = {string_not_empty:true}
+  ];
+  int32 uid = 4 [
+    (validator.field) = {length_gt:0}
+  ];
+  string article_id = 5;
+  int32 fabulous = 6;
+  string create_time = 7 [
+    (validator.field) = {string_not_empty:true}
+  ];
+  bool is_topic = 9;
+  repeated comment_slave slave_comment = 8;
+}
+
+// 使用子评论的元数据作为序列化json的结构
+// 有数据验证的均为调用者必须要提供的数据
+message comment_slave {
+  int64 comment_mid = 1;
+  int64 comment_sid = 2;
+  CommentType type = 3 [
+    (validator.field) = {is_in_enum:true}
+  ];
+  string text = 4 [
+    (validator.field) = {string_not_empty:true}
+  ];
+  int32 uid = 5 [
+    (validator.field) = {length_gt:0}
+  ];
+  string article_id = 6;
+  int32 fabulous = 7;
+  int64 reply_id = 8;
+  string create_time = 9;
+}
+
+message comment_show {
+  repeated comment_master_show master = 1;
+  string article_id = 2;
+}
+
+// 修改评论的选项
+message update_comment_option {
+  int64 comment_mid = 1;
+  int64 comment_sid = 2;
+  CommentType type = 3 [
+    (validator.field) = {is_in_enum:true}
+  ];
+  CommentOptions options = 4 [
+    (validator.field) = {is_in_enum:true}
+  ];
+  string article_id = 6;
+  int32 uid = 5 [
+    (validator.field) = {length_gt:0}
+  ];
 }

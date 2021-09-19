@@ -7,9 +7,9 @@
   port = "5002"
 
 [database]
-  ip_addr = "192.168.230.128"
+  ip_addr = "192.168.1.150"
   port = "3306"
-  user_name = "root"
+  user_name = "youyu"
   user_password = "Cok774.."
   database_name = "youyu"
   [database.sync]
@@ -19,7 +19,7 @@
     db_max_conn_life_time = 10
 
 [redis]
-  ip_addr = "192.168.230.128"
+  ip_addr = "192.168.1.150"
   port = "6379"
   password = "cok774.."
   [redis.sync]

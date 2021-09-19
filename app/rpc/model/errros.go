@@ -30,4 +30,8 @@ var (
 	PhoneNumberNotExists = errors.New("the phone number not exists")
 	// 邮箱不存在
 	EmailNotExists = errors.New("the email not exists")
+	// 评论主id不存在
+	CommentMasterIdNotExists = errors.New("the comment master id does not exist")
+	// 评论从id不存在
+	CommentSlaveIdNotExists = errors.New("the comment slave id does not exist")
 )

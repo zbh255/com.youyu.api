@@ -22,6 +22,9 @@ func InitRouter(r *gin.Engine, logger log.Logger) {
 	// ?article_id=0
 	//
 	v1.GET("/article", ControllerArticle.GetArticle)
+	// 文章评论接口,文章评论修改接口不对不同用户开放
+	v1.GET("/article/comment",ControllerArticle.GetArticleComments)
+
 	// 返回一些用于渲染页面的基本数据
 	// 返回列表的请求参数: ?position=index&type=list&page=3&page_num=4&order=hot&orderType=desc
 	// ?position=client_data&type=key&client_id=678-890-444-777
@@ -81,6 +84,10 @@ func InitRouter(r *gin.Engine, logger log.Logger) {
 		v1.PUT("/user",ControllerUser.UpdateUserInfo)
 		// 添加用户验证信息
 		v1.POST("/user",ControllerUser.AddUserCheckInfo)
+		// 需要鉴权的文章评论接口
+		v1.POST("/article/comment",ControllerArticle.AddArticleComment)
+		v1.PUT("/article/comment",ControllerArticle.UpdateCommentStatus)
+		v1.DELETE("/article/comment",ControllerArticle.DeleteArticleComment)
 	}
 
 	// 自动鉴权接口，有无鉴权时会返回不同的响应

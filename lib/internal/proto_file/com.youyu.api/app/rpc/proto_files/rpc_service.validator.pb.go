@@ -180,3 +180,50 @@ func (this *WechatUserinfo) Validate() error {
 func (this *PhoneEmailLoginInfo) Validate() error {
 	return nil
 }
+func (this *CommentMasterShow) Validate() error {
+	if _, ok := CommentType_name[int32(this.Type)]; !ok {
+		return github_com_mwitkow_go_proto_validators.FieldError("Type", fmt.Errorf(`value '%v' must be a valid CommentType field`, this.Type))
+	}
+	if this.Text == "" {
+		return github_com_mwitkow_go_proto_validators.FieldError("Text", fmt.Errorf(`value '%v' must not be an empty string`, this.Text))
+	}
+	if this.CreateTime == "" {
+		return github_com_mwitkow_go_proto_validators.FieldError("CreateTime", fmt.Errorf(`value '%v' must not be an empty string`, this.CreateTime))
+	}
+	for _, item := range this.SlaveComment {
+		if item != nil {
+			if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(item); err != nil {
+				return github_com_mwitkow_go_proto_validators.FieldError("SlaveComment", err)
+			}
+		}
+	}
+	return nil
+}
+func (this *CommentSlave) Validate() error {
+	if _, ok := CommentType_name[int32(this.Type)]; !ok {
+		return github_com_mwitkow_go_proto_validators.FieldError("Type", fmt.Errorf(`value '%v' must be a valid CommentType field`, this.Type))
+	}
+	if this.Text == "" {
+		return github_com_mwitkow_go_proto_validators.FieldError("Text", fmt.Errorf(`value '%v' must not be an empty string`, this.Text))
+	}
+	return nil
+}
+func (this *CommentShow) Validate() error {
+	for _, item := range this.Master {
+		if item != nil {
+			if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(item); err != nil {
+				return github_com_mwitkow_go_proto_validators.FieldError("Master", err)
+			}
+		}
+	}
+	return nil
+}
+func (this *UpdateCommentOption) Validate() error {
+	if _, ok := CommentType_name[int32(this.Type)]; !ok {
+		return github_com_mwitkow_go_proto_validators.FieldError("Type", fmt.Errorf(`value '%v' must be a valid CommentType field`, this.Type))
+	}
+	if _, ok := CommentOptions_name[int32(this.Options)]; !ok {
+		return github_com_mwitkow_go_proto_validators.FieldError("Options", fmt.Errorf(`value '%v' must be a valid CommentOptions field`, this.Options))
+	}
+	return nil
+}

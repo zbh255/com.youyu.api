@@ -8,6 +8,7 @@ import (
 	"com.youyu.api/lib/path"
 	"context"
 	"encoding/json"
+	"fmt"
 	"google.golang.org/grpc"
 	"log"
 	"math/rand"
@@ -97,9 +98,10 @@ func TestMysqlApiArticle(t *testing.T) {
 		ArticleUpdateTime: 0,
 	})
 	// 解包错误
-	st,_ := status.FromError(err)
-	if err != nil {
-		t.Error(err.Error())
+	st, _ := status.FromError(err)
+	if st.Code != 0 {
+		t.Error(st.Code)
+		t.Error(st.Message)
 	} else {
 		result, _ := client.GetArticle(context.Background(), &rpc.GetArticleRequest{ArticleId: article.GetArticleId()})
 		t.Log(result)
@@ -112,14 +114,16 @@ func TestMysqlApiArticle(t *testing.T) {
 		Page:    1,
 		PageNum: 3,
 	})
-	if err != nil {
-		t.Error(err.Error())
+	st,_ = status.FromError(err)
+	if st.Code != 0 {
+		t.Error(st.Code)
+		t.Error(st.Message)
 	} else {
 		t.Log(result)
 		t.Log("test getArticleList ok" + st.Message)
 	}
 	_, err = client.DelArticle(context.Background(), &rpc.GetArticleRequest{ArticleId: article.GetArticleId()})
-	st,_ = status.FromError(err)
+	st, _ = status.FromError(err)
 	if err != nil {
 		t.Error(err.Error())
 	} else {
@@ -257,16 +261,16 @@ func TestMysqlTags(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
 	// 限定text长度为10
 	// 构建400个text
-	defaultTexts := make([]string,400)
+	defaultTexts := make([]string, 400)
 	for k := range defaultTexts {
 		defaultTexts[k] = strconv.FormatInt(rand.Int63n(999999999), 10)
 	}
 	//defaultText := strconv.FormatInt(rand.Int63n(999999999), 10)
 	err = nil
-	for _,v := range defaultTexts{
+	for _, v := range defaultTexts {
 		_, err = client.AddTag(context.Background(), &rpc.Tag{Text: []string{v}})
 	}
-	st,_ := status.FromError(err)
+	st, _ := status.FromError(err)
 	if st.Code != 0 {
 		t.Error(st.Code)
 		t.Error(st.Message)
@@ -274,7 +278,7 @@ func TestMysqlTags(t *testing.T) {
 		t.Log("test add tag ok")
 	}
 	tag2, err := client.GetTagInt32Id(context.Background(), &rpc.Tag{Text: defaultTexts})
-	st,_ = status.FromError(err)
+	st, _ = status.FromError(err)
 	if st.Code != 0 {
 		t.Error(st.Code)
 		t.Error(st.Message)
@@ -283,7 +287,7 @@ func TestMysqlTags(t *testing.T) {
 		t.Log(tag2.Tid)
 	}
 	tag, err := client.GetTagText(context.Background(), &rpc.Tag{Tid: tag2.Tid})
-	st,_ = status.FromError(err)
+	st, _ = status.FromError(err)
 	if st.Code != 0 {
 		t.Error(st.Code)
 		t.Error(st.Message)
@@ -291,10 +295,10 @@ func TestMysqlTags(t *testing.T) {
 		t.Log("test get tag Text ok")
 		t.Log(tag.Text)
 	}
-	for _,v := range tag2.Tid {
+	for _, v := range tag2.Tid {
 		_, err = client.DelTag(context.Background(), &rpc.Tag{Tid: []int32{v}})
 	}
-	st,_ = status.FromError(err)
+	st, _ = status.FromError(err)
 	if st.Code != 0 {
 		t.Error(st.Code)
 		t.Error(st.Message)
@@ -486,15 +490,15 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 	// 测试模型
 	userName := "xiao-hui-xx"
 	userPassword := "womeiyoumima"
-	_, err = client.CreateUserSign(context.Background(),&rpc.UserSign{
+	_, err = client.CreateUserSign(context.Background(), &rpc.UserSign{
 		UserName:     userName,
 		UserPassword: userPassword,
 		UserBindInfo: "12345678901",
 		VCode:        "1234",
 		VToken:       "12345",
-		SignType: rpc.LoginAndSignType_Native,
+		SignType:     rpc.LoginAndSignType_Native,
 	})
-	st,_ := status.FromError(err)
+	st, _ := status.FromError(err)
 	if st.Code != 0 {
 		t.Error(st.Code)
 		t.Error(st.Message)
@@ -502,15 +506,15 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 		t.Log("create user sign ok")
 	}
 	// 重试构造错误
-	_, err = client.CreateUserSign(context.Background(),&rpc.UserSign{
+	_, err = client.CreateUserSign(context.Background(), &rpc.UserSign{
 		UserName:     userName,
 		UserPassword: userPassword,
 		UserBindInfo: "12345678901",
 		VCode:        "1234",
 		VToken:       "12345",
-		SignType: rpc.LoginAndSignType_Native,
+		SignType:     rpc.LoginAndSignType_Native,
 	})
-	st,_ = status.FromError(err)
+	st, _ = status.FromError(err)
 	if st.Code != 0 {
 		t.Log("create user sign err ok")
 	} else {
@@ -518,14 +522,14 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 		t.Error(st.Message)
 	}
 	// 测试验证用户
-	baseData, err := client.CheckUserStatus(context.Background(),&rpc.UserLogin{
+	baseData, err := client.CheckUserStatus(context.Background(), &rpc.UserLogin{
 		UserName:     userName,
 		UserPassword: userPassword,
 		Save:         0,
 		LoginType:    rpc.LoginAndSignType_Native,
 		WechatData:   nil,
 	})
-	st,_ = status.FromError(err)
+	st, _ = status.FromError(err)
 	if st.Code != 0 {
 		t.Error(st.Code)
 		t.Error(st.Message)
@@ -534,8 +538,8 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 		t.Log(baseData.Data["uid"])
 		t.Log(baseData.Data["user_name"])
 	}
-	_, err = client.DeleteUserSign(context.Background(),&rpc.UserAuth{Uid: baseData.Data["uid"]})
-	st,_ = status.FromError(err)
+	_, err = client.DeleteUserSign(context.Background(), &rpc.UserAuth{Uid: baseData.Data["uid"]})
+	st, _ = status.FromError(err)
 	if st.Code != 0 {
 		t.Error(st.Code)
 		t.Error(st.Message)
@@ -546,13 +550,13 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 	// 测试通过手机号码注册用户
 	userName_phoneTest := "xiao-hui_ph"
 	userPassword_phoneTest := "16878q37q25"
-	_, err = client.CreateUserSign(context.Background(),&rpc.UserSign{
+	_, err = client.CreateUserSign(context.Background(), &rpc.UserSign{
 		UserName:     userName_phoneTest,
 		UserPassword: userPassword_phoneTest,
 		UserBindInfo: "13025800995",
 		SignType:     rpc.LoginAndSignType_Phone,
 	})
-	st,_ = status.FromError(err)
+	st, _ = status.FromError(err)
 	if st.Code != 0 {
 		t.Error(st.Code)
 		t.Error(st.Message)
@@ -560,23 +564,24 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 		t.Log("create phone user sign ok")
 	}
 	// 通过手机号码验证用户
-	data, err := client.CheckUserStatus(context.Background(),&rpc.UserLogin{
+	data, err := client.CheckUserStatus(context.Background(), &rpc.UserLogin{
 		UserBindInfo: "13025800995",
 		Save:         0,
 		LoginType:    rpc.LoginAndSignType_Phone,
 	})
-	st,_ = status.FromError(err)
+	st, _ = status.FromError(err)
 	if st.Code != 0 {
 		t.Error(st.Code)
 		t.Error(st.Message)
+		panic("")
 	} else {
 		t.Log("check phone user ok")
 		t.Log(data.Data["user_name"])
 		t.Log(data.Data["uid"])
 	}
 	// 删除用户
-	_,err = client.DeleteUserSign(context.Background(),&rpc.UserAuth{Uid: data.Data["uid"]})
-	st,_ = status.FromError(err)
+	_, err = client.DeleteUserSign(context.Background(), &rpc.UserAuth{Uid: data.Data["uid"]})
+	st, _ = status.FromError(err)
 	if st.Code != 0 {
 		t.Error(st.Code)
 		t.Error(st.Message)
@@ -588,7 +593,7 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 	userName_wechatTest := "xiao-hui_we"
 	userPassword_wechatTest := "16878q37q25"
 	wechat_openid := "20060201199"
-	_, err = client.CreateUserSign(context.Background(),&rpc.UserSign{
+	_, err = client.CreateUserSign(context.Background(), &rpc.UserSign{
 		UserName:     userName_wechatTest,
 		UserPassword: userPassword_wechatTest,
 		SignType:     rpc.LoginAndSignType_Wechat,
@@ -603,7 +608,7 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 			Openid:    wechat_openid,
 		},
 	})
-	st,_ = status.FromError(err)
+	st, _ = status.FromError(err)
 	if st.Code != 0 {
 		t.Error(st.Code)
 		t.Error(st.Message)
@@ -611,12 +616,12 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 		t.Log("create wechat user sign ok")
 	}
 	// 通过微信openid验证用户
-	baseData, err = client.CheckUserStatus(context.Background(),&rpc.UserLogin{
-		Save:         0,
-		LoginType:    rpc.LoginAndSignType_Wechat,
-		WechatData:   &rpc.WechatUserinfo{Openid: wechat_openid},
+	baseData, err = client.CheckUserStatus(context.Background(), &rpc.UserLogin{
+		Save:       0,
+		LoginType:  rpc.LoginAndSignType_Wechat,
+		WechatData: &rpc.WechatUserinfo{Openid: wechat_openid},
 	})
-	st,_ = status.FromError(err)
+	st, _ = status.FromError(err)
 	if st.Code != 0 {
 		t.Error(st.Code)
 		t.Error(st.Message)
@@ -626,8 +631,8 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 		t.Log(data.Data["uid"])
 	}
 	// 删除用户
-	_,err = client.DeleteUserSign(context.Background(),&rpc.UserAuth{Uid: baseData.Data["uid"]})
-	st,_ = status.FromError(err)
+	_, err = client.DeleteUserSign(context.Background(), &rpc.UserAuth{Uid: baseData.Data["uid"]})
+	st, _ = status.FromError(err)
 	if st.Code != 0 {
 		t.Error(st.Code)
 		t.Error(st.Message)
@@ -637,10 +642,10 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 	// 测试原生方式注册用户并添加验证方式
 	userName = "xiao-hui-xx_native"
 	userPassword = "womeiyoumima"
-	_, err = client.CreateUserSign(context.Background(),&rpc.UserSign{
+	_, err = client.CreateUserSign(context.Background(), &rpc.UserSign{
 		UserName:     userName,
 		UserPassword: userPassword,
-		SignType: rpc.LoginAndSignType_Native,
+		SignType:     rpc.LoginAndSignType_Native,
 	})
 	if st.Code != 0 {
 		t.Error(st.Code)
@@ -663,12 +668,12 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 	}
 	// 添加邮箱验证方式
 	email := "565574327@qq.com"
-	_,err = client.AddUserCheckInfoEmail(context.Background(),&rpc.UserCheckEmail{
+	_, err = client.AddUserCheckInfoEmail(context.Background(), &rpc.UserCheckEmail{
 		Email: email,
 		Code:  637981,
 		Ua:    &rpc.UserAuth{Uid: baseData.Data["uid"]},
 	})
-	st,_ = status.FromError(err)
+	st, _ = status.FromError(err)
 	if st.Code != 0 {
 		t.Error(st.Code)
 		t.Error(st.Message)
@@ -677,12 +682,12 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 	}
 	// 添加手机验证方式
 	phone := 13025801998
-	_,err = client.AddUserCheckInfoPhone(context.Background(),&rpc.UserCheckPhone{
+	_, err = client.AddUserCheckInfoPhone(context.Background(), &rpc.UserCheckPhone{
 		Phone: int64(phone),
 		Code:  657890,
 		Ua:    &rpc.UserAuth{Uid: baseData.Data["uid"]},
 	})
-	st,_ = status.FromError(err)
+	st, _ = status.FromError(err)
 	if st.Code != 0 {
 		t.Error(st.Code)
 		t.Error(st.Message)
@@ -691,12 +696,12 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 	}
 	// 添加微信验证方式
 	openid := "wexinyonghu3389"
-	_,err = client.AddUserCheckInfoWechat(context.Background(),&rpc.UserCheckWechat{
+	_, err = client.AddUserCheckInfoWechat(context.Background(), &rpc.UserCheckWechat{
 		Openid: openid,
 		Code:   "898989",
 		Ua:     &rpc.UserAuth{Uid: baseData.Data["uid"]},
 	})
-	st,_ = status.FromError(err)
+	st, _ = status.FromError(err)
 	if st.Code != 0 {
 		t.Error(st.Code)
 		t.Error(st.Message)
@@ -704,13 +709,13 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 		t.Log("del wechat user sign ok")
 	}
 	// 验证手机号登录
-	newBaseData, err := client.CheckUserStatus(context.Background(),&rpc.UserLogin{
+	newBaseData, err := client.CheckUserStatus(context.Background(), &rpc.UserLogin{
 		UserBindInfo: strconv.Itoa(phone),
 		VCode:        "657890",
 		Save:         0,
 		LoginType:    rpc.LoginAndSignType_Phone,
 	})
-	st,_ = status.FromError(err)
+	st, _ = status.FromError(err)
 	if st.Code != 0 {
 		t.Error(st.Code)
 		t.Error(st.Message)
@@ -720,13 +725,13 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 		}
 	}
 	// 验证邮箱登录
-	newBaseData, err = client.CheckUserStatus(context.Background(),&rpc.UserLogin{
+	newBaseData, err = client.CheckUserStatus(context.Background(), &rpc.UserLogin{
 		UserBindInfo: email,
 		VCode:        "657890",
 		Save:         0,
 		LoginType:    rpc.LoginAndSignType_Email,
 	})
-	st,_ = status.FromError(err)
+	st, _ = status.FromError(err)
 	if st.Code != 0 {
 		t.Error(st.Code)
 		t.Error(st.Message)
@@ -736,13 +741,13 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 		}
 	}
 	// 验证微信登录
-	newBaseData, err = client.CheckUserStatus(context.Background(),&rpc.UserLogin{
-		VCode:        "657890",
-		Save:         0,
-		LoginType:    rpc.LoginAndSignType_Wechat,
+	newBaseData, err = client.CheckUserStatus(context.Background(), &rpc.UserLogin{
+		VCode:      "657890",
+		Save:       0,
+		LoginType:  rpc.LoginAndSignType_Wechat,
 		WechatData: &rpc.WechatUserinfo{Openid: openid},
 	})
-	st,_ = status.FromError(err)
+	st, _ = status.FromError(err)
 	if st.Code != 0 {
 		t.Error(st.Code)
 		t.Error(st.Message)
@@ -759,4 +764,162 @@ func TestMysqlUserLoginAndSign(t *testing.T) {
 	} else {
 		t.Log("clean data ok")
 	}
+}
+
+func TestMysqlCommentModel(t *testing.T) {
+	business := config.Config(&config.BusinessConfig{})
+	businessConf, err := business.GetConfig()
+	if err != nil {
+		t.Error(err)
+	}
+	resultConf := businessConf.(*config.BusinessConfig)
+	conn, err := grpc.Dial(resultConf.CentRPCServer.IP+":"+resultConf.CentRPCServer.Port, grpc.WithInsecure(), grpc.WithBlock())
+	if err != nil {
+		log.Fatalln("client cannot dial grpc business_server")
+	}
+	defer conn.Close()
+	// 连接配置中心
+	conn, err = grpc.Dial(resultConf.CentRPCServer.IP+":"+resultConf.CentRPCServer.Port, grpc.WithInsecure(), grpc.WithBlock())
+	if err != nil {
+		t.Error("client cannot dial grpc business_server")
+	}
+	defer conn.Close()
+	clientE := rpc.NewCentApiClient(conn)
+	resultStruct, err := clientE.GetRpcServerConfFile(context.Background(), &rpc.Null{})
+	if err != nil {
+		t.Error(err)
+	}
+	app := config.Config(&config.AutoGenerated{})
+	appConf, err := app.Unmarshal(resultStruct.Data)
+	if err != nil {
+		t.Error(err)
+	}
+	// 使用得到的配置连接
+	client, conn, _ := rpcClient.GetMysqlApiRpcServerLink(appConf.(*config.AutoGenerated))
+	defer conn.Close()
+	// 先创建用户
+	userName := "xiao-hui_comment"
+	userPassword := "helloworld"
+	_, err = client.CreateUserSign(context.Background(), &rpc.UserSign{
+		UserName:     userName,
+		UserPassword: userPassword,
+		SignType:     rpc.LoginAndSignType_Native,
+	})
+	st, _ := status.FromError(err)
+	if st.Code != 0 {
+		t.Error(st.Code)
+		t.Error(st.Message)
+	} else {
+		t.Log("created user sign ok")
+	}
+	// 获得用户uid
+	baseData, err := client.CheckUserStatus(context.Background(), &rpc.UserLogin{
+		UserName:     userName,
+		UserPassword: userPassword,
+		LoginType:    rpc.LoginAndSignType_Native,
+	})
+	st, _ = status.FromError(err)
+	if st.Code != 0 {
+		t.Error(st.Code)
+		t.Error(st.Message)
+		panic(st.Message)
+	} else {
+		t.Log("get user id ok")
+	}
+	// 退出清理
+	defer func(client rpc.MysqlApiClient, ctx context.Context, in *rpc.UserAuth, opts ...grpc.CallOption) {
+		_, err := client.DeleteUserSign(ctx, in, opts...)
+		if err != nil {
+			panic(err)
+		}
+	}(client, context.Background(), &rpc.UserAuth{Uid: baseData.Data["uid"]})
+	// 格式化uid
+	uid, err := strconv.Atoi(baseData.Data["uid"])
+	if err != nil {
+		panic(err)
+	}
+	// 创建文章以供测试
+	article, _ := client.AddArticle(context.Background(), &rpc.Article{
+		ArticleAbstract: "我是摘要",
+		ArticleContent:  "我是文本",
+		ArticleTitle:    "我是标题",
+		ArticleTag:      nil,
+		Uid:             int64(uid),
+	})
+	// 退出后清理
+	defer func(client rpc.MysqlApiClient, ctx context.Context, in *rpc.GetArticleRequest, opts ...grpc.CallOption) {
+		_, err := client.DelArticle(ctx, in, opts...)
+		if err != nil {
+			panic(err)
+		}
+	}(client, context.Background(), &rpc.GetArticleRequest{ArticleId: article.ArticleId})
+	// 添加文章主评论
+	_, err = client.AddComment(context.Background(), &rpc.CommentSlave{
+		Type:      rpc.CommentType_ArticleMasterComment,
+		Text:      "我是第1个评论",
+		Uid:       int32(uid),
+		ArticleId: article.ArticleId,
+	})
+	if st.Code != 0 {
+		t.Error(st.Code)
+		t.Error(st.Message)
+		panic(st.Message)
+	} else {
+		t.Log("add 1st article comment ok")
+	}
+	// 添加剩余十个主评论，并给每个主评论添加十个子评论
+	for i := 2; i <= 11; i++ {
+		_, err = client.AddComment(context.Background(), &rpc.CommentSlave{
+			Type:      rpc.CommentType_ArticleMasterComment,
+			Text:      fmt.Sprintf("我是第%d个评论", i),
+			Uid:       int32(uid),
+			ArticleId: article.ArticleId,
+		})
+	}
+	// 添加子评论
+	masterComments, err := client.GetComment(context.Background(), &rpc.CommentSlave{ArticleId: article.ArticleId})
+	if st.Code != 0 {
+		t.Error(st.Code)
+		t.Error(st.Message)
+		panic(st.Message)
+	} else {
+		t.Log(masterComments)
+		t.Log("get article master comments ok")
+	}
+	for _, v := range masterComments.Master {
+		for i := 1; i <= 10; i++ {
+			_, err = client.AddComment(context.Background(), &rpc.CommentSlave{
+				Type:       rpc.CommentType_ArticleSlaveComment,
+				CommentMid: v.CommentMid,
+				Text:       fmt.Sprintf("子评论-我是第%d个子评论", i),
+				Uid:        int32(uid),
+				ArticleId:  article.ArticleId,
+			})
+		}
+	}
+	// 获取添加完的评论
+	comments, err := client.GetComment(context.Background(), &rpc.CommentSlave{ArticleId: article.ArticleId})
+	if st.Code != 0 {
+		t.Error(st.Code)
+		t.Error(st.Message)
+		panic(st.Message)
+	} else {
+		t.Log("get article comments ok")
+		t.Log(comments)
+	}
+	// 删除主评论和子评论
+	for _, v := range masterComments.Master {
+		_, err := client.DeleteComment(context.Background(), &rpc.CommentSlave{
+			CommentMid: v.CommentMid,
+			Type:       rpc.CommentType_ArticleMasterComment,
+			Text:       "删除评论",
+			Uid:        v.Uid,
+			ArticleId:  v.ArticleId,
+		})
+		st, _ := status.FromError(err)
+		if st.Code != 0 {
+			panic(st.Code)
+		}
+	}
+	t.Log("del article master and slave comments step ok!")
 }

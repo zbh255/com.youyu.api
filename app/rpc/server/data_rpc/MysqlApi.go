@@ -436,8 +436,8 @@ func (s *MysqlApiServer) CreateUserSign(ctx context.Context, sign *rpc.UserSign)
 		break
 	case rpc.LoginAndSignType_Phone:
 		userInfo := model.DefaultUserInfoTemplate
-		phone, err := strconv.ParseInt(sign.UserBindInfo, 10, 64)
-		if err != nil {
+		phone, err2 := strconv.ParseInt(sign.UserBindInfo, 10, 64)
+		if err2 != nil {
 			return &rpc.Null{}, status.Error(ecode.ServerErr, ecode.ServerErr.Message())
 		}
 		userInfo.Phone = phone
@@ -593,8 +593,8 @@ func (s *MysqlApiServer) CheckUserStatus(ctx context.Context, sign *rpc.UserLogi
 			return &rpc.BaseData{}, status.Error(ecode.ServerErr, ecode.ServerErr.Message())
 		}
 	case rpc.LoginAndSignType_Phone:
-		phone, err := strconv.ParseInt(sign.UserBindInfo, 10, 64)
-		if err != nil {
+		phone, err2 := strconv.ParseInt(sign.UserBindInfo, 10, 64)
+		if err2 != nil {
 			return nil, status.Error(ecode.ServerErr, ecode.ServerErr.Message())
 		}
 		mdInfo, err = mdInfo.CheckUserPhoneNumber(phone)
@@ -704,20 +704,20 @@ func (s *MysqlApiServer) AddUserCheckInfoPhone(ctx context.Context, phone *rpc.U
 	// 验证参数
 	err := phone.Validate()
 	if err != nil {
-		return &rpc.Null{}, status.Error(ecode.ParaMeterErr,err.Error())
+		return &rpc.Null{}, status.Error(ecode.ParaMeterErr, err.Error())
 	}
 	md := model.UserInfo{}
 	uid, err := strconv.Atoi(phone.Ua.Uid)
 	if err != nil {
-		return &rpc.Null{}, status.Error(ecode.ServerErr,ecode.ServerErr.Message())
+		return &rpc.Null{}, status.Error(ecode.ServerErr, ecode.ServerErr.Message())
 	}
-	switch errors.Cause(md.AddUserCheckInfoPhone(int32(uid),phone.Phone)) {
+	switch errors.Cause(md.AddUserCheckInfoPhone(int32(uid), phone.Phone)) {
 	case model.UserDoesNotExist:
-		return &rpc.Null{},status.Error(ecode.UserNotExist,ecode.UserNotExist.Message())
+		return &rpc.Null{}, status.Error(ecode.UserNotExist, ecode.UserNotExist.Message())
 	case nil:
-		return &rpc.Null{},nil
+		return &rpc.Null{}, nil
 	default:
-		return &rpc.Null{},status.Error(ecode.ServerErr,ecode.ServerErr.Message())
+		return &rpc.Null{}, status.Error(ecode.ServerErr, ecode.ServerErr.Message())
 	}
 }
 
@@ -725,20 +725,20 @@ func (s *MysqlApiServer) AddUserCheckInfoEmail(ctx context.Context, email *rpc.U
 	// 验证参数
 	err := email.Validate()
 	if err != nil {
-		return &rpc.Null{}, status.Error(ecode.ParaMeterErr,err.Error())
+		return &rpc.Null{}, status.Error(ecode.ParaMeterErr, err.Error())
 	}
 	md := model.UserInfo{}
-	uid,err := strconv.Atoi(email.Ua.Uid)
+	uid, err := strconv.Atoi(email.Ua.Uid)
 	if err != nil {
-		return &rpc.Null{},status.Error(ecode.ServerErr,ecode.ServerErr.Message())
+		return &rpc.Null{}, status.Error(ecode.ServerErr, ecode.ServerErr.Message())
 	}
-	switch errors.Cause(md.AddUserCheckInfoEmail(int32(uid),email.Email)) {
+	switch errors.Cause(md.AddUserCheckInfoEmail(int32(uid), email.Email)) {
 	case model.UserDoesNotExist:
-		return &rpc.Null{},status.Error(ecode.UserNotExist,ecode.UserNotExist.Message())
+		return &rpc.Null{}, status.Error(ecode.UserNotExist, ecode.UserNotExist.Message())
 	case nil:
-		return &rpc.Null{},nil
+		return &rpc.Null{}, nil
 	default:
-		return &rpc.Null{},status.Error(ecode.ServerErr,ecode.ServerErr.Message())
+		return &rpc.Null{}, status.Error(ecode.ServerErr, ecode.ServerErr.Message())
 	}
 }
 
@@ -746,32 +746,180 @@ func (s *MysqlApiServer) AddUserCheckInfoWechat(ctx context.Context, wechat *rpc
 	// 验证参数
 	err := wechat.Validate()
 	if err != nil {
-		return &rpc.Null{}, status.Error(ecode.ParaMeterErr,err.Error())
+		return &rpc.Null{}, status.Error(ecode.ParaMeterErr, err.Error())
 	}
 	md := model.UserInfo{}
-	uid,err := strconv.Atoi(wechat.Ua.Uid)
+	uid, err := strconv.Atoi(wechat.Ua.Uid)
 	if err != nil {
-		return &rpc.Null{},status.Error(ecode.ServerErr,ecode.ServerErr.Message())
+		return &rpc.Null{}, status.Error(ecode.ServerErr, ecode.ServerErr.Message())
 	}
-	switch errors.Cause(md.AddUserCheckInfoWechat(int32(uid),wechat.Openid)) {
+	switch errors.Cause(md.AddUserCheckInfoWechat(int32(uid), wechat.Openid)) {
 	case model.UserDoesNotExist:
-		return &rpc.Null{},status.Error(ecode.UserNotExist,ecode.UserNotExist.Message())
+		return &rpc.Null{}, status.Error(ecode.UserNotExist, ecode.UserNotExist.Message())
 	case nil:
-		return &rpc.Null{},nil
+		return &rpc.Null{}, nil
 	default:
-		return &rpc.Null{},status.Error(ecode.ServerErr,ecode.ServerErr.Message())
+		return &rpc.Null{}, status.Error(ecode.ServerErr, ecode.ServerErr.Message())
 	}
 }
 
 // 添加用户头像
 func (s *MysqlApiServer) AddUserHeadPortrait(ctx context.Context, info *rpc.UserHeadPortraitSet) (*rpc.Null, error) {
 	md := model.UserInfo{}
-	switch md.UpdateUserInfo(&model.UserInfo{Uid: info.Uid,HeadPortrait: info.Url}) {
+	switch errors.Cause(md.UpdateUserInfo(&model.UserInfo{Uid: info.Uid, HeadPortrait: info.Url})) {
 	case model.UserDoesNotExist:
-		return &rpc.Null{},status.Error(ecode.UserNotExist,ecode.UserNotExist.Message())
+		return &rpc.Null{}, status.Error(ecode.UserNotExist, ecode.UserNotExist.Message())
 	case nil:
-		return &rpc.Null{},nil
+		return &rpc.Null{}, nil
 	default:
-		return &rpc.Null{},status.Error(ecode.ServerErr,ecode.ServerErr.Message())
+		return &rpc.Null{}, status.Error(ecode.ServerErr, ecode.ServerErr.Message())
+	}
+}
+
+func (s *MysqlApiServer) AddComment(ctx context.Context, slave *rpc.CommentSlave) (*rpc.Null, error) {
+	// 参数校验
+	err := slave.Validate()
+	if err != nil {
+		return &rpc.Null{}, status.Error(ecode.ParaMeterErr, err.Error())
+	}
+	err = error(nil)
+	// 根据类型添加评论
+	switch slave.Type {
+	case rpc.CommentType_ArticleMasterComment:
+		md := model.CommentMaster{}
+		err = md.AddComment(&model.CommentMaster{
+			Type:      int(slave.Type),
+			Text:      slave.Text,
+			Uid:       int(slave.Uid),
+			ArticleId: slave.ArticleId,
+		})
+		break
+	case rpc.CommentType_ArticleSlaveComment,rpc.CommentType_ArticleSlaveReplyComment:
+		md := model.CommentSlave{}
+		err = md.AddComment(&model.CommentSlave{
+			CommentMid: slave.CommentMid,
+			Type:       int(slave.Type),
+			Text:       slave.Text,
+			Uid:        int(slave.Uid),
+			ReplyId:    slave.ReplyId,
+			ArticleId:  slave.ArticleId,
+		})
+	}
+	switch errors.Cause(err) {
+	case model.ArticleIdNotExists:
+		return &rpc.Null{}, status.Error(ecode.GetArticleErr, ecode.GetArticleErr.Message())
+	case nil:
+		return &rpc.Null{}, nil
+	case model.CommentMasterIdNotExists:
+		return &rpc.Null{},status.Error(ecode.SlaveCommentIdNotExists,ecode.SlaveCommentIdNotExists.Message())
+	default:
+		return &rpc.Null{}, status.Error(ecode.ServerErr, ecode.ServerErr.Message())
+	}
+}
+
+func (s *MysqlApiServer) GetComment(ctx context.Context, slave *rpc.CommentSlave) (*rpc.CommentShow, error) {
+	md := model.CommentMaster{}
+	masterResults, err := md.GetMasterComments(slave.ArticleId)
+	if errors.Cause(err) == model.ArticleIdNotExists {
+		return &rpc.CommentShow{}, status.Error(ecode.GetArticleErr, ecode.GetArticleErr.Message())
+	} else if errors.Cause(err) != nil {
+		return &rpc.CommentShow{}, status.Error(ecode.ServerErr, ecode.ServerErr.Message())
+	}
+	// 获取子评论
+	mdcs := model.CommentSlave{}
+	slaveResults, err := mdcs.GetSlaveComments(masterResults)
+	if errors.Cause(err) != nil {
+		return &rpc.CommentShow{}, status.Error(ecode.ServerErr, ecode.ServerErr.Message())
+	}
+	// TODO:转换考虑优化
+	// 转为指定返回类型
+	cs := make([]*rpc.CommentMasterShow, 0,len(slaveResults))
+	for k, v := range slaveResults {
+		scommment := make([]*rpc.CommentSlave, 0, len(v))
+		if len(v) != 0 {
+			for _, j := range v {
+				scommment = append(scommment, &rpc.CommentSlave{
+					CommentMid: j.CommentMid,
+					CommentSid: j.CommentSid,
+					Type:       rpc.CommentType(j.Type),
+					Text:       j.Text,
+					Uid:        int32(j.Uid),
+					ArticleId:  j.ArticleId,
+					Fabulous:   j.Fabulous,
+					ReplyId:    j.ReplyId,
+					CreateTime: j.CreateTime.String(),
+				})
+			}
+		}
+		cs = append(cs, &rpc.CommentMasterShow{
+			CommentMid:   k.CommentMid,
+			Type:         rpc.CommentType(k.Type),
+			Text:         k.Text,
+			Uid:          int32(k.Uid),
+			ArticleId:    k.ArticleId,
+			Fabulous:     k.Fabulous,
+			CreateTime:   k.CreateTime.String(),
+			IsTopic:      k.IsTop,
+			SlaveComment: scommment,
+		})
+	}
+	return &rpc.CommentShow{
+		Master:    cs,
+		ArticleId: slave.ArticleId,
+	}, nil
+}
+
+func (s *MysqlApiServer) UpdateCommentStatus(ctx context.Context, option *rpc.UpdateCommentOption) (*rpc.Null, error) {
+	// 参数校验
+	if err := option.Validate(); err != nil {
+		return &rpc.Null{}, status.Error(ecode.ParaMeterErr, err.Error())
+	}
+	md := model.CommentMaster{}
+	err := error(nil)
+	// 根据选项做出相应动作
+	switch option.Options {
+	case rpc.CommentOptions_ArticleTop:
+		// 评论置顶
+		err = md.AddCommentTop(option.CommentMid)
+	case rpc.CommentOptions_ArticleCancelTop:
+		// 评论取消置顶
+		err = md.DeleteCommentTop(option.CommentMid)
+	}
+	// 判断错误
+	switch errors.Cause(err) {
+	case model.CommentMasterIdNotExists:
+		return &rpc.Null{}, status.Error(ecode.MasterCommentIdNotExists, ecode.MasterCommentIdNotExists.Message())
+	case nil:
+		return &rpc.Null{}, nil
+	default:
+		return &rpc.Null{}, status.Error(ecode.ServerErr, ecode.ServerErr.Message())
+	}
+}
+
+func (s *MysqlApiServer) DeleteComment(ctx context.Context, slave *rpc.CommentSlave) (*rpc.Null, error) {
+	// 参数校验
+	if err := slave.Validate(); err != nil {
+		return &rpc.Null{}, status.Error(ecode.ParaMeterErr, err.Error())
+	}
+	// 根据选项决定要删除的评论
+	err := error(nil)
+	switch slave.Type {
+	case rpc.CommentType_ArticleMasterComment:
+		md := model.CommentMaster{}
+		err = md.DeleteComment(slave.CommentMid, slave.Uid)
+	case rpc.CommentType_ArticleSlaveComment, rpc.CommentType_ArticleSlaveReplyComment:
+		md := model.CommentSlave{}
+		err = md.DeleteComment(slave.CommentMid, slave.CommentSid, slave.Uid)
+	}
+	// 判断并返回错误
+	switch errors.Cause(err) {
+	case model.CommentMasterIdNotExists:
+		return &rpc.Null{}, status.Error(ecode.MasterCommentIdNotExists, ecode.MasterCommentIdNotExists.Message())
+	case model.CommentSlaveIdNotExists:
+		return &rpc.Null{}, status.Error(ecode.SlaveCommentIdNotExists, ecode.SlaveCommentIdNotExists.Message())
+	case nil:
+		return &rpc.Null{}, nil
+	default:
+		return &rpc.Null{}, status.Error(ecode.ServerErr, ecode.ServerErr.Message())
 	}
 }

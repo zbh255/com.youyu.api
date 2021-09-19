@@ -53,6 +53,8 @@ var (
 	// 页面模块
 
 	// 评论模块
+	MasterCommentIdNotExists = New(10801) // 主评论id不存在
+	SlaveCommentIdNotExists = New(10802) // 子评论id不存在
 
 	// 设置模块
 

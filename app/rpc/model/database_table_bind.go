@@ -73,7 +73,8 @@ type UserBase struct {
 
 // 用户信息表
 type UserInfo struct {
-	Uid                int32     `gorm:"primaryKey;column:uid"`
+	Uid                int32     `gorm:"column:uid"`
+	Name               string    `gorm:"primaryKey;column:name"`
 	Phone              int64     `gorm:"column:phone"`
 	Email              string    `gorm:"column:email"`
 	PhoneStatus        int       `gorm:"column:phone_status"`
@@ -82,7 +83,6 @@ type UserInfo struct {
 	UpdateTime         time.Time `gorm:"column:update_time"`
 	Sex                int       `gorm:"column:sex"`
 	Age                int       `gorm:"column:age"`
-	Name               string    `gorm:"column:name"`
 	NickName           string    `gorm:"column:nick_name"`
 	Explain            string    `gorm:"column:explain"`
 	Level              int32     `gorm:"column:level"`
@@ -96,5 +96,31 @@ type UserInfo struct {
 	Language           string    `gorm:"column:language"`
 }
 
+// 评论主表
+type CommentMaster struct {
+	CommentMid int64     `gorm:"primaryKey;column:comment_mid"`
+	Type       int       `gorm:"column:type"`
+	Text       string    `gorm:"column:text"`
+	Uid        int       `gorm:"column:uid"`
+	ArticleId  string    `gorm:"column:article_id"`
+	Fabulous   int32     `gorm:"column:fabulous"`
+	CreateTime time.Time `gorm:"column:create_time"`
+	IsTop      bool      `gorm:"column:is_top"`
+}
+
+// 评论从表
+type CommentSlave struct {
+	CommentSid int64     `gorm:"primaryKey;column:comment_sid"`
+	CommentMid int64     `gorm:"column:comment_mid"`
+	Type       int       `gorm:"column:type"`
+	Text       string    `gorm:"column:text"`
+	Uid        int       `gorm:"column:uid"`
+	ReplyId    int64     `gorm:"column:reply_id"`
+	ArticleId  string    `gorm:"column:article_id"`
+	Fabulous   int32     `gorm:"column:fabulous"`
+	CreateTime time.Time `gorm:"column:create_time"`
+}
+
 // DB 数据库接口
 var DB *gorm.DB
+

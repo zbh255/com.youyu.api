@@ -8,6 +8,7 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
 
 type ArticleApi interface {
@@ -22,6 +23,11 @@ type ArticleApi interface {
 	AddArticleStatisticsHot(c *gin.Context)
 	AddArticleStatisticsFabulous(c *gin.Context)
 	GetArticleStatistics(c *gin.Context)
+	// 文章的评论
+	GetArticleComments(c *gin.Context)
+	AddArticleComment(c *gin.Context)
+	DeleteArticleComment(c *gin.Context)
+	UpdateCommentStatus(c *gin.Context)
 }
 
 type Article struct {
@@ -302,4 +308,143 @@ func (a *Article) GetArticleStatistics(c *gin.Context) {
 			"data":    result,
 		})
 	}
+}
+
+func (a *Article) GetArticleComments(c *gin.Context) {
+	articleId := c.Query("article_id")
+	if articleId == "" {
+		c.JSON(http.StatusOK,gin.H{
+			"code":ecode.ParaMeterErr.Code(),
+			"message":ecode.ParaMeterErr.Message(),
+		})
+		return
+	}
+	// 获得data_rpc
+	lis,client,err := LinkDataRpc()
+	defer ConnectAndConf.DataRpcConnPool.Put(lis)
+	if err != nil {
+		ReturnServerErrJson(c)
+		return
+	}
+	result, err := client.GetComment(context.Background(),&rpc.CommentSlave{ArticleId: articleId})
+	st,_ := status.FromError(err)
+	c.JSON(http.StatusOK,gin.H{
+		"code":st.Code,
+		"message":st.Message,
+		"data":result,
+	})
+}
+
+func (a *Article) AddArticleComment(c *gin.Context) {
+	// 绑定参数并校验
+	jsons := rpc.CommentSlave{}
+	if c.BindJSON(&jsons) != nil {
+		ReturnJsonParseErrJson(c)
+		return
+	}
+	if err := jsons.Validate(); err != nil {
+		c.JSON(http.StatusOK,gin.H{
+			"code":ecode.ParaMeterErr,
+			"message":err.Error(),
+		})
+		return
+	}
+	// 获得uid并根据类型添加评论
+	uidString := GetHeaderTokenBindTheUid(c)
+	uid,err := strconv.Atoi(uidString)
+	if err != nil {
+		ReturnServerErrJson(c)
+		return
+	}
+	jsons.Uid = int32(uid)
+	// 连接data_rpc
+	lis,client,err := LinkDataRpc()
+	defer ConnectAndConf.DataRpcConnPool.Put(lis)
+	if err != nil {
+		ReturnServerErrJson(c)
+		return
+	}
+	_, err = client.AddComment(context.Background(),&jsons)
+	st,_ := status.FromError(err)
+	c.JSON(http.StatusOK,gin.H{
+		"code":st.Code,
+		"message":st.Message,
+		"data":nil,
+	})
+}
+
+func (a *Article) DeleteArticleComment(c *gin.Context) {
+	// 绑定参数并校验
+	jsons := rpc.CommentSlave{}
+	if c.BindJSON(&jsons) != nil {
+		ReturnJsonParseErrJson(c)
+		return
+	}
+	if err := jsons.Validate(); err != nil {
+		c.JSON(http.StatusOK,gin.H{
+			"code":ecode.ParaMeterErr,
+			"message":err.Error(),
+		})
+		return
+	}
+	// 获得uid并根据类型添加评论
+	uidString := GetHeaderTokenBindTheUid(c)
+	uid,err := strconv.Atoi(uidString)
+	if err != nil {
+		ReturnServerErrJson(c)
+		return
+	}
+	jsons.Uid = int32(uid)
+	// 连接data_rpc
+	lis,client,err := LinkDataRpc()
+	defer ConnectAndConf.DataRpcConnPool.Put(lis)
+	if err != nil {
+		ReturnServerErrJson(c)
+		return
+	}
+	_, err = client.DeleteComment(context.Background(),&jsons)
+	st,_ := status.FromError(err)
+	c.JSON(http.StatusOK,gin.H{
+		"code":st.Code,
+		"message":st.Message,
+		"data":nil,
+	})
+}
+
+func (a *Article) UpdateCommentStatus(c *gin.Context) {
+	// 绑定参数并校验
+	jsons := rpc.UpdateCommentOption{}
+	if c.BindJSON(&jsons) != nil {
+		ReturnJsonParseErrJson(c)
+		return
+	}
+	if err := jsons.Validate(); err != nil {
+		c.JSON(http.StatusOK,gin.H{
+			"code":ecode.ParaMeterErr,
+			"message":err.Error(),
+		})
+		return
+	}
+	// 获得uid并根据类型添加评论
+	uidString := GetHeaderTokenBindTheUid(c)
+	uid,err := strconv.Atoi(uidString)
+	if err != nil {
+		ReturnServerErrJson(c)
+		return
+	}
+	jsons.Uid = int32(uid)
+	// 连接data_rpc
+	lis,client,err := LinkDataRpc()
+	defer ConnectAndConf.DataRpcConnPool.Put(lis)
+	if err != nil {
+		ReturnServerErrJson(c)
+		return
+	}
+	_, err = client.UpdateCommentStatus(context.Background(),&jsons)
+	st,_ := status.FromError(err)
+	c.JSON(http.StatusOK,gin.H{
+		"code":st.Code,
+		"message":st.Message,
+		"data":nil,
+	})
 }
