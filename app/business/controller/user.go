@@ -33,7 +33,7 @@ func (u *UserInfo) GetUserInfo(c *gin.Context) {
 	self := false
 	uid := ""
 	if _,bl := c.Get("Result"); bl {
-		uid = c.DefaultQuery("uid","nouid")
+		uid = c.Param("uid")
 	} else {
 		// 获取Token
 		tokenHead := c.Request.Header.Get("Authorization")

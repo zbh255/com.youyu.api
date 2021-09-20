@@ -19,8 +19,6 @@ import (
 )
 
 type VerificationApi interface {
-	WeChatLogin(c *gin.Context)
-	WeiboLogin(c *gin.Context)
 	OtherLogin(c *gin.Context)
 	SendVerificationCode(c *gin.Context)
 }
@@ -29,20 +27,36 @@ type Verification struct {
 	Logger log.Logger
 }
 
+type OtherLoginBase struct {
+	Protocol string `json:"protocol"`
+	Type string `json:"type"`
+	Code int `json:"code"`
+}
+
+type SendVcCodeBase struct {
+	AddrType string `json:"addr_type"`
+	Addr string `json:"addr"`
+}
+
 // OtherLogin 分配第三方登录的类型
 func (v *Verification) OtherLogin(c *gin.Context) {
-	switch c.Query("type") {
+	jsons := OtherLoginBase{}
+	if c.BindJSON(&jsons) != nil {
+		ReturnJsonParseErrJson(c)
+		return
+	}
+	switch jsons.Type {
 	case "wechat_login":
-		v.WeChatLogin(c)
+		v.WeChatLogin(c,&jsons)
 		break
 	case "weibo_login":
-		v.WeiboLogin(c)
+		v.WeiboLogin(c,&jsons)
 		break
 	}
 }
 
-func (v *Verification) WeChatLogin(c *gin.Context) {
-	wxCode := c.Query("code")
+func (v *Verification) WeChatLogin(c *gin.Context,base *OtherLoginBase) {
+	wxCode := strconv.Itoa(base.Code)
 	wxUrl := fmt.Sprintf(WechatLoginRawUrl, ConnectAndConf.Config.Project.Auth.WechatLogin.AppID,
 		ConnectAndConf.Config.Project.Auth.WechatLogin.AppSercret, wxCode)
 	response, err := http.Get(wxUrl)
@@ -101,12 +115,17 @@ func (v *Verification) WeChatLogin(c *gin.Context) {
 	})
 }
 
-func (v *Verification) WeiboLogin(c *gin.Context) {
+func (v *Verification) WeiboLogin(c *gin.Context,base *OtherLoginBase) {
 
 }
 
 func (v *Verification) SendVerificationCode(c *gin.Context) {
-	addr, err := base64.StdEncoding.DecodeString(c.Query("addr"))
+	jsons := SendVcCodeBase{}
+	if c.BindJSON(&jsons) != nil {
+		ReturnJsonParseErrJson(c)
+		return
+	}
+	addr, err := base64.StdEncoding.DecodeString(jsons.Addr)
 	rand.Seed(time.Now().UnixNano() - 2 << 8)
 	vcCode := rand.Intn(875555) + 100555
 	if err != nil {
@@ -116,7 +135,7 @@ func (v *Verification) SendVerificationCode(c *gin.Context) {
 		})
 		return
 	}
-	switch c.Query("addr_type") {
+	switch jsons.AddrType {
 	case "email":
 		// TODO:邮箱发送验证码的逻辑
 		// 存储验证码

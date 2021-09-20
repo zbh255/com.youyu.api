@@ -19,12 +19,11 @@ type AdvertisementApi interface {
 }
 
 type Advertisement struct {
-	advertisementJson *rpc.Advertisement
 	Logger            log.Logger
 }
 
 func (a *Advertisement) GetAdvertisement(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Query("advertisement_id"))
+	id, _ := strconv.Atoi(c.Param("advertisement_id"))
 	lis, err := ConnectAndConf.DataRpcConnPool.Get()
 	client, _, err := GetDataRpcServer(lis, err)
 	if err != nil {
@@ -37,15 +36,6 @@ func (a *Advertisement) GetAdvertisement(c *gin.Context) {
 	}
 	result, err := client.GetAdvertisement(context.Background(), &rpc.AdvertisementRequest{AdvertisementId: int32(id)})
 	// 查看结果是否为0
-	// TODO:清理errors.Is
-	//if errs.Is(err, errs.New("the query record is zero")) {
-	//	c.JSON(errors.ErrDataBaseResultIsZero.HttpCode, gin.H{
-	//		"code":    errors.ErrDataBaseResultIsZero.Code,
-	//		"message": errors.ErrDataBaseResultIsZero.Message,
-	//		"data":    result,
-	//	})
-	//	return
-	//}
 	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    st.Code,
@@ -56,9 +46,9 @@ func (a *Advertisement) GetAdvertisement(c *gin.Context) {
 }
 
 func (a *Advertisement) AddAdvertisement(c *gin.Context) {
-	a.advertisementJson = &rpc.Advertisement{}
-	err := c.BindJSON(a.advertisementJson)
-	a.advertisementJson.AdvertisementId = 0
+	ad := rpc.Advertisement{}
+	err := c.BindJSON(&ad)
+	ad.AdvertisementId = 0
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.JsonParseError.Code(),
@@ -77,7 +67,7 @@ func (a *Advertisement) AddAdvertisement(c *gin.Context) {
 		a.Logger.Error(err)
 		return
 	}
-	_, err = client.AddAdvertisement(context.Background(), a.advertisementJson)
+	_, err = client.AddAdvertisement(context.Background(), &ad)
 	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    st.Code,
@@ -88,9 +78,8 @@ func (a *Advertisement) AddAdvertisement(c *gin.Context) {
 }
 
 func (a *Advertisement) UpdateAdvertisement(c *gin.Context) {
-	a.advertisementJson = &rpc.Advertisement{}
-	err := c.BindJSON(a.advertisementJson)
-	a.advertisementJson.AdvertisementId = 0
+	ad := rpc.Advertisement{}
+	err := c.BindJSON(&ad)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.JsonParseError.Code(),
@@ -99,6 +88,14 @@ func (a *Advertisement) UpdateAdvertisement(c *gin.Context) {
 		})
 		return
 	}
+	// 获得广告id
+	adId := c.Param("advertisement_id")
+	aid, err := strconv.Atoi(adId)
+	if err != nil {
+		ReturnServerErrJson(c)
+		return
+	}
+	ad.AdvertisementId = int32(aid)
 	lis, err := ConnectAndConf.DataRpcConnPool.Get()
 	client, _, err := GetDataRpcServer(lis, err)
 	if err != nil {
@@ -109,7 +106,7 @@ func (a *Advertisement) UpdateAdvertisement(c *gin.Context) {
 		a.Logger.Error(err)
 		return
 	}
-	_, err = client.UpdateAdvertisement(context.Background(), a.advertisementJson)
+	_, err = client.UpdateAdvertisement(context.Background(), &ad)
 	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    st.Code,
@@ -120,7 +117,7 @@ func (a *Advertisement) UpdateAdvertisement(c *gin.Context) {
 }
 
 func (a *Advertisement) DelAdvertisement(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Query("advertisement_id"))
+	id, _ := strconv.Atoi(c.Param("advertisement_id"))
 	lis, err := ConnectAndConf.DataRpcConnPool.Get()
 	client, _, err := GetDataRpcServer(lis, err)
 	if err != nil {

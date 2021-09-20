@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/satori/go.uuid"
 	"net/http"
-	"strconv"
 )
 
 type Base struct {
@@ -22,21 +21,14 @@ type BaseApi interface {
 	InitDirection(c *gin.Context)
 }
 
-type BaseQuery struct {
-	Position string `form:"position" binding:"required"`
-	Type     string `form:"type" binding:"required"`
-	ClientId string `form:"client_id" binding:"required"`
-}
 
 // GetIndexData 返回渲染首页需要的广告和文章的数据
 func (b *Base) GetIndexData(c *gin.Context) {
-	page, _ := strconv.Atoi(c.Query("page"))
-	pageNum, _ := strconv.Atoi(c.Query("page_num"))
-	op := &rpc.ArticleOptions{
-		Type:    c.Query("order_type"),
-		Order:   c.Query("order"),
-		Page:    int32(page),
-		PageNum: int32(pageNum),
+	jsons := rpc.ArticleOptions{}
+	err := c.BindJSON(&jsons)
+	if err != nil {
+		ReturnJsonParseErrJson(c)
+		return
 	}
 	lis, err := ConnectAndConf.DataRpcConnPool.Get()
 	client, _, err := GetDataRpcServer(lis, err)
@@ -51,10 +43,10 @@ func (b *Base) GetIndexData(c *gin.Context) {
 	// 退出归还连接
 	defer ConnectAndConf.DataRpcConnPool.Put(lis)
 	// 查询文章
-	articleResults, err1 := client.GetArticleList(context.Background(), op)
+	articleResults, err1 := client.GetArticleList(context.Background(), &jsons)
 	st1, _ := status.FromError(err1)
 	// 查询广告
-	advertisementResults, err2 := client.GetAdvertisementList(context.Background(), op)
+	advertisementResults, err2 := client.GetAdvertisementList(context.Background(), &jsons)
 	st2, _ := status.FromError(err2)
 	if st1.Code != 0 || st2.Code != 0 {
 		st := &status.Status{}
@@ -84,7 +76,7 @@ func (b *Base) GetIndexData(c *gin.Context) {
 }
 
 func (b *Base) InitDirection(c *gin.Context) {
-	switch c.Query("position") {
+	switch c.Param("position") {
 	case "index":
 		b.GetIndexData(c)
 		break
@@ -96,25 +88,10 @@ func (b *Base) InitDirection(c *gin.Context) {
 
 // GetClientData 返回客户端需要的数据
 func (b *Base) GetClientData(c *gin.Context) {
-	jsons := BaseQuery{}
-	if c.ShouldBindQuery(&jsons) != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    ecode.UrlParseError.Code(),
-			"message": ecode.UrlParseError.Message(),
-		})
-		return
-	}
-	if jsons.Type == "key" {
+	typeString := c.Param("type")
+	if typeString == "key" {
 		// 返回一个公钥
-		// 检验UUid
-		UUid, err := uuid.FromString(jsons.ClientId)
-		if err != nil {
-			c.JSON(http.StatusOK, gin.H{
-				"code":    ecode.ClientIdError.Code(),
-				"message": ecode.ClientIdError.Message(),
-			})
-			return
-		}
+		// 检验UUid,已由中间件检验
 		// 验证成功以后签钥
 		lis, err := ConnectAndConf.SecretKeyRpcConnPool.Get()
 		client, _, err := GetSecretKeyRpcServer(lis, err)
@@ -125,8 +102,10 @@ func (b *Base) GetClientData(c *gin.Context) {
 			})
 			return
 		}
+		// 获得UUID
+		UUID := c.Request.Header.Get("Client-Id")
 		defer ConnectAndConf.SecretKeyRpcConnPool.Put(lis)
-		Key, err := client.GetPublicKey(context.Background(), &rpc.RsaKey{ClientId: UUid.String()})
+		Key, err := client.GetPublicKey(context.Background(), &rpc.RsaKey{ClientId: UUID})
 		if err != nil {
 			c.JSON(http.StatusOK, gin.H{
 				"code":    ecode.ServerErr.Code(),
@@ -140,7 +119,7 @@ func (b *Base) GetClientData(c *gin.Context) {
 			"message": ecode.OK.Message(),
 			"key":     Key.PublicKey,
 		})
-	} else if jsons.Type == "client_id" {
+	} else if typeString == "client_id" {
 		// 返回一个客户端id
 		UUid := uuid.NewV4()
 		c.JSON(http.StatusOK, gin.H{

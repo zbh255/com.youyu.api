@@ -9,18 +9,18 @@ import "github.com/mwitkow/go-proto-validators@v0.3.2/validator.proto";
 service MysqlApi {
   // 添加文章，添加成功后返回文章id供测试程序测试
   rpc addArticle(Article) returns (Article) {};
-  rpc getArticle(getArticle_request) returns (Article) {};
+  rpc getArticle(Article_request) returns (Article) {};
   rpc updateArticle(Article) returns (null) {}
-  rpc delArticle(getArticle_request) returns (null) {}
+  rpc delArticle(Article_request) returns (null) {}
   rpc getArticleList(ArticleOptions) returns (Article_Response) {};
 
   //  获取文章热度点赞的选项
-  rpc getArticleStatistics(getArticle_request) returns (ArticleStatistics) {};
-  rpc addArticleStatisticsFabulous(getArticle_request) returns (null) {};
-  rpc addArticleStatisticsHot(getArticle_request) returns (null) {};
-  rpc addArticleStatisticsCommentNum(getArticle_request) returns (null) {};
+  rpc getArticleStatistics(Article_request) returns (ArticleStatistics) {};
+  rpc addArticleStatisticsFabulous(Article_request) returns (null) {};
+  rpc addArticleStatisticsHot(Article_request) returns (null) {};
+  rpc addArticleStatisticsCommentNum(Article_request) returns (null) {};
   // 删除文章点赞的接口
-  rpc delArticleStatisticsFabulous(getArticle_request) returns (null) {};
+  rpc delArticleStatisticsFabulous(Article_request) returns (null) {};
 
   // 文章评论接口
   rpc AddComment(comment_slave) returns (null);
@@ -64,8 +64,11 @@ message Article_Response {
   repeated ArticleLinkTab articles = 1;
 }
 
-message getArticle_request{
-  string article_id = 1;
+message Article_request{
+  repeated string article_id = 1;
+  int32 uid = 2;
+  ArticleListOption content_type = 3;
+  ArticleOptions options = 4;
 }
 
 message Article {

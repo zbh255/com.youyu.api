@@ -24,9 +24,17 @@ type Tags struct {
 	Logger log.Logger
 }
 
+type AddTagBase struct {
+	Tags []string `json:"tags"`
+}
+
+// 遵守REST规范做出了资源通过Body传递的改动
 func (t *Tags) AddTag(c *gin.Context) {
-	tagTextString := c.Query("data")
-	tagTextS := utils.SplitStringsToTagList(tagTextString)
+	jsons := AddTagBase{}
+	if c.BindJSON(&jsons) != nil {
+		ReturnJsonParseErrJson(c)
+		return
+	}
 	lis, err := ConnectAndConf.DataRpcConnPool.Get()
 	client, _, err := GetDataRpcServer(lis, err)
 	if err != nil {
@@ -39,7 +47,7 @@ func (t *Tags) AddTag(c *gin.Context) {
 	}
 	// 退出归还连接
 	defer ConnectAndConf.DataRpcConnPool.Put(lis)
-	_, err = client.AddTag(context.Background(), &rpc.Tag{Text: tagTextS})
+	_, err = client.AddTag(context.Background(), &rpc.Tag{Text: jsons.Tags})
 	st, _ := status.FromError(err)
 	c.JSON(http.StatusOK,gin.H{
 		"code":st.Code,
@@ -48,22 +56,19 @@ func (t *Tags) AddTag(c *gin.Context) {
 }
 
 func (t *Tags) TagOpt(c *gin.Context) {
-	switch c.Query("type") {
+	switch c.Param("type") {
 	case "id":
 		t.GetTagText(c)
 		break
 	case "text":
 		t.GetTagInt32Id(c)
 		break
-	case "add":
-		t.AddTag(c)
-		break
 	}
 }
 
 func (t *Tags) GetTagInt32Id(c *gin.Context) {
 	// 标签名数据经过base64编码，所以需要解码
-	tagTextString, err := base64.StdEncoding.DecodeString(c.Query("text"))
+	tagTextString, err := base64.StdEncoding.DecodeString(c.Param("data"))
 	if err != nil {
 		c.JSON(http.StatusOK,gin.H{
 			"code":ecode.EncodeError.Code(),
@@ -104,7 +109,7 @@ func (t *Tags) GetTagInt32Id(c *gin.Context) {
 func (t *Tags) GetTagText(c *gin.Context) {
 
 	// 标签名数据经过base64编码，所以需要解码
-	tagIdString, err := base64.StdEncoding.DecodeString(c.Query("id"))
+	tagIdString, err := base64.StdEncoding.DecodeString(c.Param("data"))
 	if err != nil {
 		c.JSON(http.StatusOK,gin.H{
 			"code":ecode.EncodeError.Code(),

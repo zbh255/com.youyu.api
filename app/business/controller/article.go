@@ -31,15 +31,14 @@ type ArticleApi interface {
 }
 
 type Article struct {
-	articleJson       *rpc.Article
-	articleStatistics *rpc.ArticleStatistics
 	// 业务日志
 	Logger log.Logger
 }
 
 func (a *Article) AddArticle(c *gin.Context) {
-	a.articleJson = &rpc.Article{}
-	err := c.BindJSON(a.articleJson)
+	// 解决数据竞争的bug
+	article := rpc.Article{}
+	err := c.BindJSON(&article)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.JsonParseError.Code(),
@@ -60,11 +59,16 @@ func (a *Article) AddArticle(c *gin.Context) {
 	}
 	// 退出归还连接
 	defer ConnectAndConf.DataRpcConnPool.Put(lis)
-	// 使用uuid作为文章的id
-	a.articleJson.ArticleId = "0"
-	// TODO:使用登录的用户uid作为文章编写者
-	a.articleJson.Uid = 1
-	_, err = client.AddArticle(context.Background(), a.articleJson)
+	// 获得uid并根据类型添加评论
+	uidString := GetHeaderTokenBindTheUid(c)
+	uid,err := strconv.Atoi(uidString)
+	if err != nil {
+		ReturnServerErrJson(c)
+		return
+	}
+	article.Uid = int64(uid)
+	// 文章id数据库操作接口会自动生成
+	_, err = client.AddArticle(context.Background(), &article)
 	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    st.Code,
@@ -83,7 +87,7 @@ func (a *Article) GetArticles(c *gin.Context) {
 }
 
 func (a *Article) GetArticle(c *gin.Context) {
-	articleId := c.Query("article_id")
+	articleId := c.Param("article_id")
 	lis, err := ConnectAndConf.DataRpcConnPool.Get()
 	client, _, err := GetDataRpcServer(lis, err)
 	if err != nil {
@@ -97,16 +101,6 @@ func (a *Article) GetArticle(c *gin.Context) {
 	// 退出归还连接
 	defer ConnectAndConf.DataRpcConnPool.Put(lis)
 	result, err := client.GetArticle(context.Background(), &rpc.GetArticleRequest{ArticleId: articleId})
-	// 查看结果是否为0
-	// TODO: 交给前端判断
-	//if errs.Is(err, errs.New("the query record is zero")) {
-	//	c.JSON(errors.ErrDataBaseResultIsZero.HttpCode, gin.H{
-	//		"code":    errors.ErrDataBaseResultIsZero.Code,
-	//		"message": errors.ErrDataBaseResultIsZero.Message,
-	//		"data":    result,
-	//	})
-	//	return
-	//}
 	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    st.Code,
@@ -114,26 +108,14 @@ func (a *Article) GetArticle(c *gin.Context) {
 			"data":    result,
 		})
 	}
-
-	//if err != nil {
-	//	c.JSON(http.StatusOK, gin.H{
-	//		"code":    ecode.GetArticleErr.Code(),
-	//		"message": ecode.GetArticleErr.Message(),
-	//		"data":    nil,
-	//	})
-	//	return
-	//} else {
-	//	c.JSON(http.StatusOK, gin.H{
-	//		"code":    ecode.OK.Code(),
-	//		"message": ecode.OK.Message(),
-	//		"data":    result,
-	//	})
-	//}
 }
 
+// 修复删除文章的漏洞，删除文章只校验了uid,没有校验改文章是否属于该uid
+// 如果用户非法输入则会导致删除其他用户的文章
+// NOTE:已修复
 // 删除文章
 func (a *Article) DelArticle(c *gin.Context) {
-	articleId := c.Query("article_id")
+	articleId := c.Param("article_id")
 	lis, err := ConnectAndConf.DataRpcConnPool.Get()
 	client, _, err := GetDataRpcServer(lis, err)
 	if err != nil {
@@ -146,8 +128,14 @@ func (a *Article) DelArticle(c *gin.Context) {
 	}
 	// 退出归还连接
 	defer ConnectAndConf.DataRpcConnPool.Put(lis)
+	// 获得uid并根据类型添加评论
+	uidString := GetHeaderTokenBindTheUid(c)
+	uid,err := strconv.Atoi(uidString)
+	if err != nil {
+		ReturnServerErrJson(c)
+		return
+	}
 	_, err = client.DelArticle(context.Background(), &rpc.GetArticleRequest{ArticleId: articleId})
-
 	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    st.Code,
@@ -158,8 +146,8 @@ func (a *Article) DelArticle(c *gin.Context) {
 }
 
 func (a *Article) SetArticle(c *gin.Context) {
-	a.articleJson = &rpc.Article{}
-	err := c.BindJSON(a.articleJson)
+	article := rpc.Article{}
+	err := c.BindJSON(&article)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.JsonParseError.Code(),
@@ -168,6 +156,10 @@ func (a *Article) SetArticle(c *gin.Context) {
 		})
 		return
 	}
+	// 获得文章id
+	articleId := c.Param("article_id")
+	article.ArticleId = articleId
+	// 连接data_rpc
 	lis, err := ConnectAndConf.DataRpcConnPool.Get()
 	client, _, err := GetDataRpcServer(lis, err)
 	if err != nil {
@@ -180,7 +172,15 @@ func (a *Article) SetArticle(c *gin.Context) {
 	}
 	// 退出归还连接
 	defer ConnectAndConf.DataRpcConnPool.Put(lis)
-	_, err = client.UpdateArticle(context.Background(), a.articleJson)
+	// 获得uid并根据类型添加评论
+	uidString := GetHeaderTokenBindTheUid(c)
+	uid,err := strconv.Atoi(uidString)
+	if err != nil {
+		ReturnServerErrJson(c)
+		return
+	}
+	article.Uid = int64(uid)
+	_, err = client.UpdateArticle(context.Background(), &article)
 	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    st.Code,
@@ -192,7 +192,7 @@ func (a *Article) SetArticle(c *gin.Context) {
 
 // 根据不同的type导向添加与删除点赞\热度
 func (a *Article) Options(c *gin.Context) {
-	Type := c.Query("type")
+	Type := c.Param("type")
 	switch Type {
 	case "hot":
 		a.AddArticleStatisticsHot(c)
@@ -205,7 +205,7 @@ func (a *Article) Options(c *gin.Context) {
 
 // ReduceArticleStatisticsFabulous 文章的点赞数-1
 func (a *Article) ReduceArticleStatisticsFabulous(c *gin.Context) {
-	articleId := c.Query("article_id")
+	articleId := c.Param("article_id")
 	lis, err := ConnectAndConf.DataRpcConnPool.Get()
 	client, _, err := GetDataRpcServer(lis, err)
 	if err != nil {
@@ -229,7 +229,7 @@ func (a *Article) ReduceArticleStatisticsFabulous(c *gin.Context) {
 }
 
 func (a *Article) AddArticleStatisticsHot(c *gin.Context) {
-	articleId := c.Query("article_id")
+	articleId := c.Param("article_id")
 	lis, err := ConnectAndConf.DataRpcConnPool.Get()
 	client, _, err := GetDataRpcServer(lis, err)
 	if err != nil {
@@ -253,7 +253,7 @@ func (a *Article) AddArticleStatisticsHot(c *gin.Context) {
 }
 
 func (a *Article) AddArticleStatisticsFabulous(c *gin.Context) {
-	articleId := c.Query("article_id")
+	articleId := c.Param("article_id")
 	lis, err := ConnectAndConf.DataRpcConnPool.Get()
 	client, _, err := GetDataRpcServer(lis, err)
 	if err != nil {
@@ -277,7 +277,7 @@ func (a *Article) AddArticleStatisticsFabulous(c *gin.Context) {
 }
 
 func (a *Article) GetArticleStatistics(c *gin.Context) {
-	articleId := c.Query("article_id")
+	articleId := c.Param("article_id")
 	lis, err := ConnectAndConf.DataRpcConnPool.Get()
 	client, _, err := GetDataRpcServer(lis, err)
 	if err != nil {
@@ -292,15 +292,6 @@ func (a *Article) GetArticleStatistics(c *gin.Context) {
 	defer ConnectAndConf.DataRpcConnPool.Put(lis)
 	result, err := client.GetArticleStatistics(context.Background(), &rpc.GetArticleRequest{ArticleId: articleId})
 	// 查看结果是否为0
-	// TODO: 使用Casus功能进行修改
-	//if errs.Is(err, errs.New("the query record is zero")) {
-	//	c.JSON(errors.ErrDataBaseResultIsZero.HttpCode, gin.H{
-	//		"code":    errors.ErrDataBaseResultIsZero.Code,
-	//		"message": errors.ErrDataBaseResultIsZero.Message,
-	//		"data":    result,
-	//	})
-	//	return
-	//}
 	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    st.Code,
@@ -311,7 +302,7 @@ func (a *Article) GetArticleStatistics(c *gin.Context) {
 }
 
 func (a *Article) GetArticleComments(c *gin.Context) {
-	articleId := c.Query("article_id")
+	articleId := c.Param("article_id")
 	if articleId == "" {
 		c.JSON(http.StatusOK,gin.H{
 			"code":ecode.ParaMeterErr.Code(),
@@ -342,6 +333,7 @@ func (a *Article) AddArticleComment(c *gin.Context) {
 		ReturnJsonParseErrJson(c)
 		return
 	}
+	jsons.ArticleId = c.Param("article_id")
 	if err := jsons.Validate(); err != nil {
 		c.JSON(http.StatusOK,gin.H{
 			"code":ecode.ParaMeterErr,
@@ -380,6 +372,7 @@ func (a *Article) DeleteArticleComment(c *gin.Context) {
 		ReturnJsonParseErrJson(c)
 		return
 	}
+	jsons.ArticleId = c.Param("article_id")
 	if err := jsons.Validate(); err != nil {
 		c.JSON(http.StatusOK,gin.H{
 			"code":ecode.ParaMeterErr,
@@ -418,6 +411,7 @@ func (a *Article) UpdateCommentStatus(c *gin.Context) {
 		ReturnJsonParseErrJson(c)
 		return
 	}
+	jsons.ArticleId = c.Param("article_id")
 	if err := jsons.Validate(); err != nil {
 		c.JSON(http.StatusOK,gin.H{
 			"code":ecode.ParaMeterErr,
