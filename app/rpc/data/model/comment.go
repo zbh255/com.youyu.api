@@ -112,24 +112,22 @@ func (s *CommentSlave) GetSlaveComments(cms []*CommentMaster) (map[*CommentMaste
 	}
 	css := make(map[*CommentMaster][]*CommentSlave)
 	tmp := make([]*CommentSlave,0)
-	result := DB.Model(s).Where("comment_mid IN ?",midList).FindInBatches(&tmp, len(midList),func(tx *gorm.DB,batch int) error{
-		if tx.RowsAffected != 0 {
-			css[CmsTmp[tmp[0].CommentMid]] = tmp
-		}
-		return tx.Error
-	})
-	// 没有子评论的情况下
-	if result.RowsAffected == 0 {
-		for _,v := range cms {
-			css[v] = nil
+
+	var result *gorm.DB
+	for _,v := range midList {
+		if result = DB.Model(s).Where("comment_mid = ?",v).Find(&tmp); result.RowsAffected != 0 {
+			css[CmsTmp[v]] = tmp
+		} else {
+			css[CmsTmp[v]] = nil
 		}
 	}
+
 	return css,errors.WithStack(result.Error)
 }
 
 func (s *CommentSlave) DeleteComment(mid,sid int64,uid int32) error  {
 	return DB.Transaction(func(tx *gorm.DB) error {
-		if result := tx.Where("comment_mid = ? AND comment_mid = ? AND uid = ?",mid,sid,uid).
+		if result := tx.Where("comment_mid = ? AND comment_sid = ? AND uid = ?",mid,sid,uid).
 			Delete(&CommentSlave{CommentSid: sid}); result.RowsAffected == 0 {
 			return errors.WithStack(CommentSlaveIdNotExists)
 		} else {

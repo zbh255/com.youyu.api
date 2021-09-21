@@ -152,6 +152,8 @@ func main() {
 	}
 	// 注册签名密钥
 	controller.TokenSigningKey = []byte(resultAG.Project.Auth.TokenSigntureKey)
+	// 注册签钥服务器的密钥
+	option.TokenSigntureKey = []byte(resultAG.Project.Auth.TokenSigntureKey)
 	// 注册Token过期时间
 	controller.TokenExpTime = resultAG.Project.Auth.TokenTimeout
 	// 注册错误

@@ -895,6 +895,7 @@ func (s *MysqlApiServer) UpdateCommentStatus(ctx context.Context, option *rpc.Up
 	}
 }
 
+// TODO 添加鉴别权限，如果是文章的撰写者则可以任意删除,主评论的创建者能够删除旗下的子评论
 func (s *MysqlApiServer) DeleteComment(ctx context.Context, slave *rpc.CommentSlave) (*rpc.Null, error) {
 	// 参数校验
 	if err := slave.Validate(); err != nil {
