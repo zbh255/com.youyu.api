@@ -58,28 +58,28 @@ func TestMysqlApiArticle(t *testing.T) {
 	} else {
 		t.Log("test addArticle ok")
 	}
-	_, err = client.AddArticleStatisticsHot(context.Background(), &rpc.GetArticleRequest{ArticleId: article.GetArticleId()})
+	_, err = client.AddArticleStatisticsHot(context.Background(), &rpc.ArticleRequest{ArticleId: article.GetArticleId()})
 	if err != nil {
 		t.Error(err)
 	} else {
 		t.Log("test addArticleStatisticsHot ok")
 	}
 
-	_, err = client.AddArticleStatisticsFabulous(context.Background(), &rpc.GetArticleRequest{ArticleId: article.GetArticleId()})
+	_, err = client.AddArticleStatisticsFabulous(context.Background(), &rpc.ArticleRequest{ArticleId: article.GetArticleId()})
 	if err != nil {
 		t.Error(err.Error())
 	} else {
 		t.Log("test addArticleStatisticsFabulous ok")
 	}
 
-	_, err = client.AddArticleStatisticsCommentNum(context.Background(), &rpc.GetArticleRequest{ArticleId: article.GetArticleId()})
+	_, err = client.AddArticleStatisticsCommentNum(context.Background(), &rpc.ArticleRequest{ArticleId: article.GetArticleId()})
 	if err != nil {
 		t.Error(err.Error())
 	} else {
 		t.Log("test addArticleStatisticsCommentNum ok")
 	}
 
-	article, err = client.GetArticle(context.Background(), &rpc.GetArticleRequest{ArticleId: article.GetArticleId()})
+	article, err = client.GetArticle(context.Background(), &rpc.ArticleRequest{ArticleId: article.GetArticleId()})
 	if err != nil {
 		t.Error(err.Error())
 	} else {
@@ -103,7 +103,7 @@ func TestMysqlApiArticle(t *testing.T) {
 		t.Error(st.Code)
 		t.Error(st.Message)
 	} else {
-		result, _ := client.GetArticle(context.Background(), &rpc.GetArticleRequest{ArticleId: article.GetArticleId()})
+		result, _ := client.GetArticle(context.Background(), &rpc.ArticleRequest{ArticleId: article.GetArticleId()})
 		t.Log(result)
 		t.Log("test updateArticle ok" + st.Message)
 	}
@@ -122,7 +122,7 @@ func TestMysqlApiArticle(t *testing.T) {
 		t.Log(result)
 		t.Log("test getArticleList ok" + st.Message)
 	}
-	_, err = client.DelArticle(context.Background(), &rpc.GetArticleRequest{ArticleId: article.GetArticleId()})
+	_, err = client.DelArticle(context.Background(), &rpc.ArticleRequest{ArticleId: article.GetArticleId()})
 	st, _ = status.FromError(err)
 	if err != nil {
 		t.Error(err.Error())
@@ -847,12 +847,12 @@ func TestMysqlCommentModel(t *testing.T) {
 		Uid:             int64(uid),
 	})
 	// 退出后清理
-	defer func(client rpc.MysqlApiClient, ctx context.Context, in *rpc.GetArticleRequest, opts ...grpc.CallOption) {
+	defer func(client rpc.MysqlApiClient, ctx context.Context, in *rpc.ArticleRequest, opts ...grpc.CallOption) {
 		_, err := client.DelArticle(ctx, in, opts...)
 		if err != nil {
 			panic(err)
 		}
-	}(client, context.Background(), &rpc.GetArticleRequest{ArticleId: article.ArticleId})
+	}(client, context.Background(), &rpc.ArticleRequest{ArticleId: article.ArticleId})
 	// 添加文章主评论
 	_, err = client.AddComment(context.Background(), &rpc.CommentSlave{
 		Type:      rpc.CommentType_ArticleMasterComment,

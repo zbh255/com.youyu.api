@@ -100,7 +100,7 @@ func (a *Article) GetArticle(c *gin.Context) {
 	}
 	// 退出归还连接
 	defer ConnectAndConf.DataRpcConnPool.Put(lis)
-	result, err := client.GetArticle(context.Background(), &rpc.GetArticleRequest{ArticleId: articleId})
+	result, err := client.GetArticle(context.Background(), &rpc.ArticleRequest{ArticleId: articleId})
 	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    st.Code,
@@ -135,7 +135,7 @@ func (a *Article) DelArticle(c *gin.Context) {
 		ReturnServerErrJson(c)
 		return
 	}
-	_, err = client.DelArticle(context.Background(), &rpc.GetArticleRequest{ArticleId: articleId})
+	_, err = client.DelArticle(context.Background(), &rpc.ArticleRequest{ArticleId: articleId})
 	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    st.Code,
@@ -218,7 +218,7 @@ func (a *Article) ReduceArticleStatisticsFabulous(c *gin.Context) {
 	}
 	// 退出归还连接
 	defer ConnectAndConf.DataRpcConnPool.Put(lis)
-	_, err = client.DelArticleStatisticsFabulous(context.Background(), &rpc.GetArticleRequest{ArticleId: articleId})
+	_, err = client.DelArticleStatisticsFabulous(context.Background(), &rpc.ArticleRequest{ArticleId: articleId})
 	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    st.Code,
@@ -242,7 +242,7 @@ func (a *Article) AddArticleStatisticsHot(c *gin.Context) {
 	}
 	// 退出归还连接
 	defer ConnectAndConf.DataRpcConnPool.Put(lis)
-	_, err = client.AddArticleStatisticsHot(context.Background(), &rpc.GetArticleRequest{ArticleId: articleId})
+	_, err = client.AddArticleStatisticsHot(context.Background(), &rpc.ArticleRequest{ArticleId: articleId})
 	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    st.Code,
@@ -266,7 +266,7 @@ func (a *Article) AddArticleStatisticsFabulous(c *gin.Context) {
 	}
 	// 退出归还连接
 	defer ConnectAndConf.DataRpcConnPool.Put(lis)
-	_, err = client.AddArticleStatisticsFabulous(context.Background(), &rpc.GetArticleRequest{ArticleId: articleId})
+	_, err = client.AddArticleStatisticsFabulous(context.Background(), &rpc.ArticleRequest{ArticleId: articleId})
 	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    st.Code,
@@ -290,7 +290,7 @@ func (a *Article) GetArticleStatistics(c *gin.Context) {
 	}
 	// 退出归还连接
 	defer ConnectAndConf.DataRpcConnPool.Put(lis)
-	result, err := client.GetArticleStatistics(context.Background(), &rpc.GetArticleRequest{ArticleId: articleId})
+	result, err := client.GetArticleStatistics(context.Background(), &rpc.ArticleRequest{ArticleId: articleId})
 	// 查看结果是否为0
 	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{

@@ -94,7 +94,7 @@ func (s *MysqlApiServer) GetArticleList(ctx context.Context, null *rpc.ArticleOp
 }
 
 // TODO:Tag类型的问题未解决
-func (s *MysqlApiServer) GetArticle(ctx context.Context, request *rpc.GetArticleRequest) (*rpc.Article, error) {
+func (s *MysqlApiServer) GetArticle(ctx context.Context, request *rpc.ArticleRequest) (*rpc.Article, error) {
 	md := model.Article{}
 	article, err := md.GetArticle(request.ArticleId)
 
@@ -119,7 +119,7 @@ func (s *MysqlApiServer) GetArticle(ctx context.Context, request *rpc.GetArticle
 	}
 }
 
-func (s *MysqlApiServer) GetArticleStatistics(ctx context.Context, request *rpc.GetArticleRequest) (*rpc.ArticleStatistics, error) {
+func (s *MysqlApiServer) GetArticleStatistics(ctx context.Context, request *rpc.ArticleRequest) (*rpc.ArticleStatistics, error) {
 	as := model.ArticleStatistics{}
 	result, err := as.GetArticleStatistics(request.ArticleId)
 	switch errors.Cause(err) {
@@ -140,7 +140,7 @@ func (s *MysqlApiServer) GetArticleStatistics(ctx context.Context, request *rpc.
 
 }
 
-func (s *MysqlApiServer) AddArticleStatisticsFabulous(ctx context.Context, null *rpc.GetArticleRequest) (*rpc.Null, error) {
+func (s *MysqlApiServer) AddArticleStatisticsFabulous(ctx context.Context, null *rpc.ArticleRequestOne) (*rpc.Null, error) {
 	s.Lock.Lock()
 	defer s.Lock.Unlock()
 	as := model.ArticleStatistics{}
@@ -157,7 +157,7 @@ func (s *MysqlApiServer) AddArticleStatisticsFabulous(ctx context.Context, null 
 	}
 }
 
-func (s *MysqlApiServer) AddArticleStatisticsHot(ctx context.Context, null *rpc.GetArticleRequest) (*rpc.Null, error) {
+func (s *MysqlApiServer) AddArticleStatisticsHot(ctx context.Context, null *rpc.ArticleRequest) (*rpc.Null, error) {
 	s.Lock.Lock()
 	defer s.Lock.Unlock()
 	as := model.ArticleStatistics{}
@@ -174,7 +174,7 @@ func (s *MysqlApiServer) AddArticleStatisticsHot(ctx context.Context, null *rpc.
 	}
 }
 
-func (s *MysqlApiServer) AddArticleStatisticsCommentNum(ctx context.Context, null *rpc.GetArticleRequest) (*rpc.Null, error) {
+func (s *MysqlApiServer) AddArticleStatisticsCommentNum(ctx context.Context, null *rpc.ArticleRequest) (*rpc.Null, error) {
 	as := model.ArticleStatistics{}
 	err := as.AddCommentNum(null.ArticleId)
 	switch errors.Cause(err) {
@@ -281,7 +281,7 @@ func (s *MysqlApiServer) UpdateArticle(ctx context.Context, article *rpc.Article
 	}
 }
 
-func (s *MysqlApiServer) DelArticle(ctx context.Context, request *rpc.GetArticleRequest) (*rpc.Null, error) {
+func (s *MysqlApiServer) DelArticle(ctx context.Context, request *rpc.ArticleRequest) (*rpc.Null, error) {
 	md := model.Article{}
 	err := md.DelArticle(request.ArticleId)
 	if err != nil {
@@ -292,7 +292,7 @@ func (s *MysqlApiServer) DelArticle(ctx context.Context, request *rpc.GetArticle
 	}
 }
 
-func (s *MysqlApiServer) DelArticleStatisticsFabulous(ctx context.Context, request *rpc.GetArticleRequest) (*rpc.Null, error) {
+func (s *MysqlApiServer) DelArticleStatisticsFabulous(ctx context.Context, request *rpc.ArticleRequest) (*rpc.Null, error) {
 	md := model.ArticleStatistics{}
 	err := md.ReduceFabulous(request.ArticleId)
 	switch errors.Cause(err) {

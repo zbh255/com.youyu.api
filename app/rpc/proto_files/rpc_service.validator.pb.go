@@ -30,7 +30,15 @@ func (this *Article_Response) Validate() error {
 	}
 	return nil
 }
-func (this *GetArticleRequest) Validate() error {
+func (this *ArticleRequest) Validate() error {
+	if this.Options != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Options); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("Options", err)
+		}
+	}
+	return nil
+}
+func (this *ArticleRequestOne) Validate() error {
 	return nil
 }
 func (this *Article) Validate() error {
