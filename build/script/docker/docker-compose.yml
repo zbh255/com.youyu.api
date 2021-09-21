@@ -23,27 +23,6 @@ services:
       - front
       - back
 
-  data_rpc:
-    container_name: com.YouYu.api.data_rpc
-    image: com.youyu.api.data_rpc:v0.1.3
-    build:
-      context: ""
-      dockerfile: data_rpc.dockerfile
-    # not public link ports
-#    ports:
-#      - "5000:5000"
-    # 先运行中心镜像，获取配置后确保正常运行
-    depends_on:
-      - cent_rpc
-    labels:
-      - com.YouYu.api.Version=v0.1.3
-      - com.YouYu.api.Feature=data_rpc
-    pid: "host"
-    volumes:
-      - ./conf:/app/conf:ro
-    networks:
-      - back
-
   cent_rpc:
     container_name: com.YouYu.api.cent_rpc
     image: com.youyu.api.cent_rpc:v0.1.3
@@ -60,23 +39,6 @@ services:
     volumes:
       - ./conf:/app/conf:rw
       - ./dir:/app/dir:rw
-    networks:
-      - back
-
-  secretKey_rpc:
-    container_name: com.YouYu.api.secretKey_rpc
-    image: com.youyu.api.secret_key_rpc:v0.1.3
-    build:
-      context: ""
-      dockerfile: secretKey_rpc.dockerfile
-    depends_on:
-      - cent_rpc
-    labels:
-      - com.YouYu.api.Version=v0.1.3
-      - com.YouYu.api.Feature=secretKey_rpc
-    pid: "host"
-    volumes:
-      - ./conf:/app/conf:ro
     networks:
       - back
 

@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"io"
 	"math/rand"
 	"net/http"
@@ -95,15 +96,13 @@ func (v *Verification) WeChatLogin(c *gin.Context,base *OtherLoginBase) {
 	}
 	// 成功则签钥
 	// 连接secretKey_rpc
-	secretKeyLis, err := ConnectAndConf.SecretKeyRpcConnPool.Get()
-	defer ConnectAndConf.SecretKeyRpcConnPool.Put(secretKeyLis)
-	secretKeyClient, _, err := GetSecretKeyRpcServer(secretKeyLis, err)
-	if err != nil {
+	secretKeyClient := TakeSecretKeyLink()
+	if secretKeyClient == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.ServerErr.Code(),
 			"message": ecode.ServerErr.Message(),
 		})
-		v.Logger.Error(err)
+		v.Logger.Error(errors.New("nil ptr"))
 		return
 	}
 	wechatToken, err := secretKeyClient.BindWechatToken(context.Background(), &jsons)
@@ -139,12 +138,15 @@ func (v *Verification) SendVerificationCode(c *gin.Context) {
 	case "email":
 		// TODO:邮箱发送验证码的逻辑
 		// 存储验证码
-		lis, client, err := LinkSecretKeyRpc()
-		if err != nil {
-			ReturnServerErrJson(c)
+		client := TakeSecretKeyLink()
+		if client == nil {
+			c.JSON(http.StatusOK, gin.H{
+				"code":    ecode.ServerErr.Code(),
+				"message": ecode.ServerErr.Message(),
+			})
+			v.Logger.Error(errors.New("nil ptr"))
 			return
 		}
-		defer ConnectAndConf.SecretKeyRpcConnPool.Put(lis)
 		_, err = client.BindUserVcCode(context.Background(),&rpc.UserVcCode{BindInfo: string(addr),VcCode: strconv.Itoa(vcCode)})
 		st,_ := status.FromError(err)
 		c.JSON(http.StatusOK,gin.H{
@@ -154,12 +156,12 @@ func (v *Verification) SendVerificationCode(c *gin.Context) {
 	case "phone":
 		// TODO:发送手机验证码的逻辑
 		// 存储验证码
-		lis, client, err := LinkSecretKeyRpc()
-		if err != nil {
+		client := TakeSecretKeyLink()
+		if client == nil {
 			ReturnServerErrJson(c)
+			v.Logger.Error(errors.New("nil ptr"))
 			return
 		}
-		defer ConnectAndConf.SecretKeyRpcConnPool.Put(lis)
 		_, err = client.BindUserVcCode(context.Background(),&rpc.UserVcCode{BindInfo: string(addr),VcCode: strconv.Itoa(vcCode)})
 		st,_ := status.FromError(err)
 		c.JSON(http.StatusOK,gin.H{

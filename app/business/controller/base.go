@@ -7,6 +7,7 @@ import (
 	"com.youyu.api/lib/log"
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 	"net/http"
 )
@@ -30,18 +31,15 @@ func (b *Base) GetIndexData(c *gin.Context) {
 		ReturnJsonParseErrJson(c)
 		return
 	}
-	lis, err := ConnectAndConf.DataRpcConnPool.Get()
-	client, _, err := GetDataRpcServer(lis, err)
-	if err != nil {
+	client := TakeDataBaseLink()
+	if client == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.ServerErr.Code(),
 			"message": ecode.ServerErr.Message(),
 		})
-		b.Logger.Error(err)
+		b.Logger.Error(errors.New("nil ptr"))
 		return
 	}
-	// 退出归还连接
-	defer ConnectAndConf.DataRpcConnPool.Put(lis)
 	// 查询文章
 	articleResults, err1 := client.GetArticleList(context.Background(), &jsons)
 	st1, _ := status.FromError(err1)
@@ -93,18 +91,17 @@ func (b *Base) GetClientData(c *gin.Context) {
 		// 返回一个公钥
 		// 检验UUid,已由中间件检验
 		// 验证成功以后签钥
-		lis, err := ConnectAndConf.SecretKeyRpcConnPool.Get()
-		client, _, err := GetSecretKeyRpcServer(lis, err)
-		if err != nil {
+		client := TakeSecretKeyLink()
+		if client == nil {
 			c.JSON(http.StatusOK, gin.H{
 				"code":    ecode.ServerErr.Code(),
 				"message": ecode.ServerErr.Message(),
 			})
+			b.Logger.Error(errors.New("nil ptr"))
 			return
 		}
 		// 获得UUID
 		UUID := c.Request.Header.Get("Client-Id")
-		defer ConnectAndConf.SecretKeyRpcConnPool.Put(lis)
 		Key, err := client.GetPublicKey(context.Background(), &rpc.RsaKey{ClientId: UUID})
 		if err != nil {
 			c.JSON(http.StatusOK, gin.H{

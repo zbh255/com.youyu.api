@@ -1,5 +1,5 @@
 // 签钥服务，全面统一项目的错误处理
-package secretKey_rpc
+package option
 
 import (
 	rpc "com.youyu.api/app/rpc/proto_files"

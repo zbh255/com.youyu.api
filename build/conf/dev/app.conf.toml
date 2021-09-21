@@ -47,21 +47,3 @@
     ip_addr = "127.0.0.1"
     port = "8080"
     protocol = "http"
-[server.sync.data_rpc]
-    # 初始化连接数
-    grpc_poll_init_cap_size = 100
-    # 最大连接数
-    grpc_poll_max_cap_size  = 500
-    # 最大空闲连接数
-    grpc_poll_max_idle-size = 200
-    # 连接存活时间
-    grpc_poll_max_idle_timeout = 10
-[server.sync.secretKey_rpc]
-    # 初始化连接数
-    grpc_poll_init_cap_size = 300
-    # 最大连接数
-    grpc_poll_max_cap_size  = 4999
-    # 最大空闲连接数
-    grpc_poll_max_idle-size = 400
-    # 连接存活时间
-    grpc_poll_max_idle_timeout = 5

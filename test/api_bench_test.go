@@ -3,8 +3,11 @@ package test
 import (
 	"com.youyu.api/app/business/controller"
 	"com.youyu.api/app/rpc/client"
+	"com.youyu.api/app/rpc/data/model"
+	"com.youyu.api/app/rpc/data/option"
 	rpc "com.youyu.api/app/rpc/proto_files"
 	"com.youyu.api/lib/config"
+	"com.youyu.api/lib/database"
 	"com.youyu.api/lib/ecode"
 	"com.youyu.api/lib/log"
 	"com.youyu.api/lib/path"
@@ -12,10 +15,9 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"github.com/rs/zerolog"
 	zlg "github.com/rs/zerolog/log"
-	"github.com/silenceper/pool"
-	"google.golang.org/grpc"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -71,58 +73,75 @@ func ReturnServer() *gin.Engine {
 			FileName:          path.LogBusinessFileName,
 		}),
 	}))
-	// 初始化grpc设置
-	grpc.MaxSendMsgSize(2 << 31)
-	grpc.MaxRecvMsgSize(2 << 31)
-	grpc.InitialWindowSize(2 << 29)
-	grpc.InitialConnWindowSize(2 << 29)
-	grpc.MaxConcurrentStreams(2 << 8)
-	// 初始化data_rpc连接池
-	Factory := func() (interface{}, error) {
-		m, c, e := client.GetMysqlApiRpcServerLink(resultAG)
-		return &[2]interface{}{m, c}, e
-	}
-	Close := func(i interface{}) error {
-		i2 := i.(*[2]interface{})
-		conn := i2[1].(*grpc.ClientConn)
-		return conn.Close()
-	}
-	p, err := pool.NewChannelPool(&pool.Config{
-		InitialCap:  resultAG.Server.Sync.DataRPC.GrpcPollInitCapSize,
-		MaxCap:      resultAG.Server.Sync.DataRPC.GrpcPollMaxCapSize,
-		MaxIdle:     resultAG.Server.Sync.DataRPC.GrpcPollMaxIdleSize,
-		Factory:     Factory,
-		Close:       Close,
-		IdleTimeout: time.Duration(resultAG.Server.Sync.DataRPC.GrpcPollMaxIdleTimeout) * time.Second,
+	// 初始化redis连接池客户端
+	// 向option注册连接池
+	redisPool := redis.NewClient(&redis.Options{
+		// 网络连接方式
+		Network: "tcp",
+		// redis server地址
+		Addr: resultAG.Redis.IPAddr + ":" + resultAG.Redis.Port,
+		// redis的密码
+		Password: resultAG.Redis.Password,
+		// 使用的数据库编号
+		DB: 0,
+		// 客户端建立连接的超时时间
+		DialTimeout: time.Duration(resultAG.Redis.Sync.DialTimeout) * time.Second,
+		// 连接池的最大闲置连接数
+		PoolSize: resultAG.Redis.Sync.MaxOpenConnSize,
+		// 连接池的最小保持的限制连接数量
+		MinIdleConns: resultAG.Redis.Sync.MinOpenConnSize,
+		// 连接池连接的保活时间
+		MaxConnAge: time.Duration(resultAG.Redis.Sync.MaxConnLifeTime) * time.Second,
+		// 当连接池中没有空闲连接时，程序等待空闲连接的最长时间
+		PoolTimeout: time.Duration(resultAG.Redis.Sync.PoolTimeout) * time.Second,
+		// 闲置连接的超时时间
+		IdleTimeout: time.Duration(resultAG.Redis.Sync.IdleTimeout) * time.Second,
 	})
 	if err != nil {
 		panic(err)
 	}
-	// 初始化secretKey_rpc连接池
-	Factory = func() (interface{}, error) {
-		m, c, e := client.GetSecretKeyApiRpcServerLink(resultAG)
-		return &[2]interface{}{m, c}, e
-	}
-	Close = func(i interface{}) error {
-		i2 := i.(*[2]interface{})
-		conn := i2[1].(*grpc.ClientConn)
-		return conn.Close()
-	}
-	sp, err := pool.NewChannelPool(&pool.Config{
-		InitialCap:  resultAG.Server.Sync.SecretKeyRPC.GrpcPollInitCapSize,
-		MaxCap:      resultAG.Server.Sync.SecretKeyRPC.GrpcPollMaxCapSize,
-		MaxIdle:     resultAG.Server.Sync.SecretKeyRPC.GrpcPollMaxIdleSize,
-		Factory:     Factory,
-		Close:       Close,
-		IdleTimeout: time.Duration(resultAG.Server.Sync.SecretKeyRPC.GrpcPollMaxIdleTimeout) * time.Second,
-	})
+	// 初始化mysql数据库
+	dbInterface := database.DataBase(&database.Mysql{})
+	dbInterface.SetConfig(resultAG)
+	db,err := dbInterface.GetConnect()
 	if err != nil {
 		panic(err)
 	}
+	model.DB = db
+	// 初始化给business使用的全局接口，并初始化各自模块的日志
+	// database日志
+	dbStream, err := clientE.PushLogStream(context.Background())
+	if err != nil {
+		panic(err)
+	}
+	defer dbStream.CloseSend()
+	// secretKey日志
+	secretKeyStream,err := clientE.PushLogStream(context.Background())
+	if err != nil {
+		panic(err)
+	}
+	defer secretKeyStream.CloseSend()
 	controller.ConnectAndConf = &controller.ConnectAndConfig{
 		Config:               resultAG,
-		DataRpcConnPool:      p,
-		SecretKeyRpcConnPool: sp,
+		SecretKeyLink: &option.SecretKeyApiServer{
+			RedisClient:                redisPool,
+			Logger:                     log.Logger(&log.ZLogger{
+				Level:  zerolog.ErrorLevel,
+				Logger: zlg.Output(&client.IOW{
+					CentRpcPushStream: secretKeyStream,
+					FileName:          path.LogSecretRpcFileName,
+				}),
+			}),
+		},
+		DataBaseLink: &option.MysqlApiServer{
+			Logger:                      log.Logger(&log.ZLogger{
+				Level:  zerolog.ErrorLevel,
+				Logger: zlg.Output(&client.IOW{
+					CentRpcPushStream: dbStream,
+					FileName:          path.LogDataRpcFileName,
+				}),
+			}),
+		},
 	}
 	// 注册签名密钥
 	controller.TokenSigningKey = []byte(resultAG.Project.Auth.TokenSigntureKey)

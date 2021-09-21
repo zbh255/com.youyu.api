@@ -68,10 +68,8 @@ func AutoJwtAuth() gin.HandlerFunc {
 			return
 		}
 		// 连接签钥服务器
-		secretKeyLis, err := controller.ConnectAndConf.SecretKeyRpcConnPool.Get()
-		defer controller.ConnectAndConf.SecretKeyRpcConnPool.Put(secretKeyLis)
-		client, _, err := controller.GetSecretKeyRpcServer(secretKeyLis, err)
-		if err != nil {
+		client := controller.TakeSecretKeyLink()
+		if client == nil {
 			c.JSON(http.StatusOK, gin.H{
 				"code":    ecode.ServerErr.Code(),
 				"message": ecode.ServerErr.Message(),

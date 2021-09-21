@@ -15,7 +15,8 @@ const (
 	LogGlobalPath string = "./log"
 	// LogWebServerFileName gin web服务器日志文件
 	LogWebServerFileName  string = "gin.log"
-	LogDataRpcFileName    string = "data_rpc.log"
+	LogDataRpcFileName    string = "data.log"
+	LogSecretRpcFileName string = "secret.log"
 	LogConfigCentFileName string = "cent_rpc.log"
 	LogBusinessFileName   string = "business.log"
 	// InfoFileDefaultPath 信息文件的默认路径

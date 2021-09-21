@@ -34,17 +34,6 @@
   ip_addr = "127.0.0.1"
   port = "8080"
   protocol = "http"
-  [server.sync]
-    [server.sync.data_rpc]
-      grpc_poll_init_cap_size = 100
-      grpc_poll_max_cap_size = 500
-      grpc_poll_max_idle-size = 200
-      grpc_poll_max_idle_timeout = 10
-    [server.sync.secretKey_rpc]
-      grpc_poll_init_cap_size = 300
-      grpc_poll_max_cap_size = 4999
-      grpc_poll_max_idle-size = 400
-      grpc_poll_max_idle_timeout = 5
 
 [project]
   mode = "release"

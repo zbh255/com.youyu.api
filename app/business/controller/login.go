@@ -12,6 +12,7 @@ import (
 	go_encrypt "github.com/abingzo/go-encrypt"
 	"github.com/bwmarrin/snowflake"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -52,15 +53,13 @@ func (l *SignAndLogin) CreateSign(c *gin.Context) {
 		return
 	}
 	// 连接secretKey_rpc
-	secretKeyLis, err := ConnectAndConf.SecretKeyRpcConnPool.Get()
-	defer ConnectAndConf.SecretKeyRpcConnPool.Put(secretKeyLis)
-	secretKeyClient, _, err := GetSecretKeyRpcServer(secretKeyLis, err)
-	if err != nil {
+	secretKeyClient := TakeSecretKeyLink()
+	if secretKeyClient == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.ServerErr.Code(),
 			"message": ecode.ServerErr.Message(),
 		})
-		l.Logger.Error(err)
+		l.Logger.Error(errors.New("nil ptr"))
 		return
 	}
 	// 获取私钥解码密码
@@ -132,15 +131,13 @@ func (l *SignAndLogin) CreateSign(c *gin.Context) {
 	}
 
 	// 连接data_rpc
-	lis, err := ConnectAndConf.DataRpcConnPool.Get()
-	defer ConnectAndConf.DataRpcConnPool.Put(lis)
-	dataClient, _, err := GetDataRpcServer(lis, err)
-	if err != nil {
+	dataClient := TakeDataBaseLink()
+	if dataClient == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.ServerErr.Code(),
 			"message": ecode.ServerErr.Message(),
 		})
-		l.Logger.Error(err)
+		l.Logger.Error(errors.New("nil ptr"))
 		return
 	}
 	// TODO:校验验证码和第三方验证系统token
@@ -179,27 +176,23 @@ func (l *SignAndLogin) DeleteSign(c *gin.Context) {
 	}
 	// TODO:第三方滑动验证和验证码
 	// 连接secretKey_rpc
-	secretKeyLis, err := ConnectAndConf.SecretKeyRpcConnPool.Get()
-	defer ConnectAndConf.SecretKeyRpcConnPool.Put(secretKeyLis)
-	client, _, err := GetSecretKeyRpcServer(secretKeyLis, err)
-	if err != nil {
+	client := TakeSecretKeyLink()
+	if client == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.ServerErr.Code(),
 			"message": ecode.ServerErr.Message(),
 		})
-		l.Logger.Error(err)
+		l.Logger.Error(errors.New("nil ptr"))
 		return
 	}
 	// 连接data_rpc
-	lis, err := ConnectAndConf.DataRpcConnPool.Get()
-	defer ConnectAndConf.DataRpcConnPool.Put(lis)
-	dataClient, _, err := GetDataRpcServer(lis, err)
-	if err != nil {
+	dataClient := TakeDataBaseLink()
+	if dataClient == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.ServerErr.Code(),
 			"message": ecode.ServerErr.Message(),
 		})
-		l.Logger.Error(err)
+		l.Logger.Error(errors.New("nil ptr"))
 		return
 	}
 	// 获取Token
@@ -353,27 +346,23 @@ func (l *SignAndLogin) CreateLoginState(c *gin.Context) {
 	}
 	// TODO:校验验证码
 	// 连接secretKey_rpc
-	secretKeyLis, err := ConnectAndConf.SecretKeyRpcConnPool.Get()
-	defer ConnectAndConf.SecretKeyRpcConnPool.Put(secretKeyLis)
-	secretKeyClient, _, err := GetSecretKeyRpcServer(secretKeyLis, err)
-	if err != nil {
+	secretKeyClient := TakeSecretKeyLink()
+	if secretKeyClient == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.ServerErr.Code(),
 			"message": ecode.ServerErr.Message(),
 		})
-		l.Logger.Error(err)
+		l.Logger.Error(errors.New("nil ptr"))
 		return
 	}
 	// 连接data_rpc
-	lis, err := ConnectAndConf.DataRpcConnPool.Get()
-	defer ConnectAndConf.DataRpcConnPool.Put(lis)
-	dataClient, _, err := GetDataRpcServer(lis, err)
-	if err != nil {
+	dataClient := TakeDataBaseLink()
+	if dataClient == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.ServerErr.Code(),
 			"message": ecode.ServerErr.Message(),
 		})
-		l.Logger.Error(err)
+		l.Logger.Error(errors.New("nil ptr"))
 		return
 	}
 	// 响应数据
@@ -527,15 +516,13 @@ func (l *SignAndLogin) DeleteLoginState(c *gin.Context) {
 	// 获取token对应的uid
 	uidString := c.Writer.Header().Get(tokenHeadInfo[1])
 	// 连接secretKey_rpc
-	secretKeyLis, err := ConnectAndConf.SecretKeyRpcConnPool.Get()
-	defer ConnectAndConf.SecretKeyRpcConnPool.Put(secretKeyLis)
-	client, _, err := GetSecretKeyRpcServer(secretKeyLis, err)
-	if err != nil {
+	client := TakeSecretKeyLink()
+	if client == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.ServerErr.Code(),
 			"message": ecode.ServerErr.Message(),
 		})
-		l.Logger.Error(err)
+		l.Logger.Error(errors.New("nil ptr"))
 		return
 	}
 	// 获取客户端id

@@ -6,57 +6,6 @@ option go_package = "com.youyu.api/app/rpc/proto_files";
 
 import "github.com/mwitkow/go-proto-validators@v0.3.2/validator.proto";
 
-service MysqlApi {
-  // 添加文章，添加成功后返回文章id供测试程序测试
-  rpc addArticle(Article) returns (Article) {};
-  rpc getArticle(Article_request) returns (Article) {};
-  rpc updateArticle(Article) returns (null) {}
-  rpc delArticle(Article_request) returns (null) {}
-  rpc getArticleList(ArticleOptions) returns (Article_Response) {};
-
-  //  获取文章热度点赞的选项
-  rpc getArticleStatistics(Article_request_one) returns (ArticleStatistics) {};
-  rpc addArticleStatisticsFabulous(Article_request_one) returns (null) {};
-  rpc addArticleStatisticsHot(Article_request_one) returns (null) {};
-  rpc addArticleStatisticsCommentNum(Article_request_one) returns (null) {};
-  // 删除文章点赞的接口
-  rpc delArticleStatisticsFabulous(Article_request_one) returns (null) {};
-
-  // 文章评论接口
-  rpc AddComment(comment_slave) returns (null);
-  rpc GetComment(comment_slave) returns (comment_show);
-  rpc UpdateCommentStatus(update_comment_option) returns (null);
-  rpc DeleteComment(comment_slave) returns (null);
-
-  //  广告rpc接口
-  rpc  addAdvertisement(advertisement) returns (null) {}
-  rpc  getAdvertisement(advertisement_request) returns (advertisement){}
-  rpc  updateAdvertisement(advertisement) returns (null) {}
-  rpc  delAdvertisement(advertisement_request) returns(null) {}
-  rpc  getAdvertisementList(ArticleOptions) returns (advertisement_response);
-  // 标签rpc接口
-  rpc getTagText(tag) returns (tag);
-  rpc getTagInt32Id(tag) returns (tag);
-  rpc addTag(tag) returns (null);
-  rpc delTag(tag) returns (null);
-  // 用户rpc接口
-  rpc createUserSign(user_sign) returns (null) {}
-  // 获得自己的信息
-  rpc getUserInfoInSelf(user_auth) returns (user_info_show) {}
-  // 根据uid获取其他用户的公开信息
-  rpc getUserInfoInOther(user_auth) returns (user_info_other_show) {}
-  rpc updateUserInfo(user_info_set) returns (null);
-  rpc deleteUserSign(user_auth) returns (null);
-  // 验证用户是否存在,data_rpc不负责登录等存取token的逻辑
-  rpc checkUserStatus(user_login) returns (BaseData);
-  // 添加用户验证信息
-  rpc AddUserCheckInfoPhone(user_check_phone) returns (null);
-  rpc AddUserCheckInfoEmail(user_check_email) returns (null);
-  rpc AddUserCheckInfoWechat(user_check_wechat) returns (null);
-  // 添加用户头像
-  rpc AddUserHeadPortrait(user_head_portrait_set) returns (null);
-  // 订单rpc接口
-}
 
 message null {}
 

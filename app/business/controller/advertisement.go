@@ -7,6 +7,7 @@ import (
 	"com.youyu.api/lib/log"
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"net/http"
 	"strconv"
 )
@@ -24,14 +25,13 @@ type Advertisement struct {
 
 func (a *Advertisement) GetAdvertisement(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("advertisement_id"))
-	lis, err := ConnectAndConf.DataRpcConnPool.Get()
-	client, _, err := GetDataRpcServer(lis, err)
-	if err != nil {
+	client := TakeDataBaseLink()
+	if client == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.ServerErr.Code(),
 			"message": ecode.ServerErr.Message(),
 		})
-		a.Logger.Error(err)
+		a.Logger.Error(errors.New("nil ptr"))
 		return
 	}
 	result, err := client.GetAdvertisement(context.Background(), &rpc.AdvertisementRequest{AdvertisementId: int32(id)})
@@ -57,14 +57,13 @@ func (a *Advertisement) AddAdvertisement(c *gin.Context) {
 		})
 		return
 	}
-	lis, err := ConnectAndConf.DataRpcConnPool.Get()
-	client, _, err := GetDataRpcServer(lis, err)
-	if err != nil {
+	client := TakeDataBaseLink()
+	if client == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.ServerErr.Code(),
 			"message": ecode.ServerErr.Message(),
 		})
-		a.Logger.Error(err)
+		a.Logger.Error(errors.New("nil ptr"))
 		return
 	}
 	_, err = client.AddAdvertisement(context.Background(), &ad)
@@ -96,14 +95,13 @@ func (a *Advertisement) UpdateAdvertisement(c *gin.Context) {
 		return
 	}
 	ad.AdvertisementId = int32(aid)
-	lis, err := ConnectAndConf.DataRpcConnPool.Get()
-	client, _, err := GetDataRpcServer(lis, err)
-	if err != nil {
+	client := TakeDataBaseLink()
+	if client == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.ServerErr.Code(),
 			"message": ecode.ServerErr.Message(),
 		})
-		a.Logger.Error(err)
+		a.Logger.Error(errors.New("nil ptr"))
 		return
 	}
 	_, err = client.UpdateAdvertisement(context.Background(), &ad)
@@ -118,17 +116,16 @@ func (a *Advertisement) UpdateAdvertisement(c *gin.Context) {
 
 func (a *Advertisement) DelAdvertisement(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("advertisement_id"))
-	lis, err := ConnectAndConf.DataRpcConnPool.Get()
-	client, _, err := GetDataRpcServer(lis, err)
-	if err != nil {
+	client := TakeDataBaseLink()
+	if client == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.ServerErr.Code(),
 			"message": ecode.ServerErr.Message(),
 		})
-		a.Logger.Error(err)
+		a.Logger.Error(errors.New("nil ptr"))
 		return
 	}
-	_, err = client.DelAdvertisement(context.Background(), &rpc.AdvertisementRequest{AdvertisementId: int32(id)})
+	_, err := client.DelAdvertisement(context.Background(), &rpc.AdvertisementRequest{AdvertisementId: int32(id)})
 	if st, bl := status.FromError(err); bl {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    st.Code,

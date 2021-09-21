@@ -1,7 +1,7 @@
-package data_rpc
+package option
 
 import (
-	"com.youyu.api/app/rpc/model"
+	"com.youyu.api/app/rpc/data/model"
 	rpc "com.youyu.api/app/rpc/proto_files"
 	"com.youyu.api/lib/ecode"
 	"com.youyu.api/lib/ecode/status"
@@ -18,7 +18,6 @@ import (
 )
 
 type MysqlApiServer struct {
-	rpc.UnimplementedMysqlApiServer
 	Logger log.Logger
 	// 热度和点赞访问的互斥锁
 	Lock sync.Mutex
@@ -96,11 +95,11 @@ func (s *MysqlApiServer) GetArticleList(ctx context.Context, null *rpc.ArticleOp
 // TODO:Tag类型的问题未解决
 func (s *MysqlApiServer) GetArticle(ctx context.Context, request *rpc.ArticleRequest) (*rpc.Article, error) {
 	md := model.Article{}
-	article, err := md.GetArticle(request.ArticleId)
+	article, err := md.GetArticle(request.ArticleId[0])
 
 	switch errors.Cause(err) {
 	case model.ArticleIdNotExists:
-		s.Logger.Info(fmt.Sprintf("%+v", errors.Wrap(err, request.ArticleId)))
+		s.Logger.Info(fmt.Sprintf("%+v", errors.Wrap(err, request.ArticleId[0])))
 		return &rpc.Article{}, status.Error(ecode.GetArticleErr, ecode.GetArticleErr.Message())
 	case nil:
 		return &rpc.Article{
@@ -121,10 +120,10 @@ func (s *MysqlApiServer) GetArticle(ctx context.Context, request *rpc.ArticleReq
 
 func (s *MysqlApiServer) GetArticleStatistics(ctx context.Context, request *rpc.ArticleRequest) (*rpc.ArticleStatistics, error) {
 	as := model.ArticleStatistics{}
-	result, err := as.GetArticleStatistics(request.ArticleId)
+	result, err := as.GetArticleStatistics(request.ArticleId[0])
 	switch errors.Cause(err) {
 	case model.ArticleIdNotExists:
-		s.Logger.Info(fmt.Sprintf("%+v", errors.Wrap(err, "article id not exist: "+request.ArticleId)))
+		s.Logger.Info(fmt.Sprintf("%+v", errors.Wrap(err, "article id not exist: "+request.ArticleId[0])))
 		return &rpc.ArticleStatistics{}, status.Error(ecode.GetArticleStatisticsErr, ecode.GetArticleStatisticsErr.Message())
 	case nil:
 		return &rpc.ArticleStatistics{
@@ -161,10 +160,10 @@ func (s *MysqlApiServer) AddArticleStatisticsHot(ctx context.Context, null *rpc.
 	s.Lock.Lock()
 	defer s.Lock.Unlock()
 	as := model.ArticleStatistics{}
-	err := as.AddHot(null.ArticleId)
+	err := as.AddHot(null.ArticleId[0])
 	switch errors.Cause(err) {
 	case model.ArticleIdNotExists:
-		s.Logger.Info(fmt.Sprintf("%+v", errors.Wrap(err, "article id not exist: "+null.ArticleId)))
+		s.Logger.Info(fmt.Sprintf("%+v", errors.Wrap(err, "article id not exist: "+null.ArticleId[0])))
 		return &rpc.Null{}, status.Error(ecode.AddArticleHotErr, ecode.AddArticleHotErr.Message())
 	case nil:
 		return &rpc.Null{}, nil
@@ -176,10 +175,10 @@ func (s *MysqlApiServer) AddArticleStatisticsHot(ctx context.Context, null *rpc.
 
 func (s *MysqlApiServer) AddArticleStatisticsCommentNum(ctx context.Context, null *rpc.ArticleRequest) (*rpc.Null, error) {
 	as := model.ArticleStatistics{}
-	err := as.AddCommentNum(null.ArticleId)
+	err := as.AddCommentNum(null.ArticleId[0])
 	switch errors.Cause(err) {
 	case model.ArticleIdNotExists:
-		s.Logger.Info(fmt.Sprintf("%+v", errors.Wrap(err, "article id not exist: "+null.ArticleId)))
+		s.Logger.Info(fmt.Sprintf("%+v", errors.Wrap(err, "article id not exist: "+null.ArticleId[0])))
 		return &rpc.Null{}, status.Error(ecode.AddArticleCommentNumErr, ecode.AddArticleCommentNumErr.Message())
 	case nil:
 		return &rpc.Null{}, nil
@@ -283,7 +282,7 @@ func (s *MysqlApiServer) UpdateArticle(ctx context.Context, article *rpc.Article
 
 func (s *MysqlApiServer) DelArticle(ctx context.Context, request *rpc.ArticleRequest) (*rpc.Null, error) {
 	md := model.Article{}
-	err := md.DelArticle(request.ArticleId)
+	err := md.DelArticle(request.ArticleId[0])
 	if err != nil {
 		s.Logger.Error(errors.Wrap(err, "del article failed"))
 		return &rpc.Null{}, status.Error(ecode.ServerErr, ecode.ServerErr.Message())
@@ -294,10 +293,10 @@ func (s *MysqlApiServer) DelArticle(ctx context.Context, request *rpc.ArticleReq
 
 func (s *MysqlApiServer) DelArticleStatisticsFabulous(ctx context.Context, request *rpc.ArticleRequest) (*rpc.Null, error) {
 	md := model.ArticleStatistics{}
-	err := md.ReduceFabulous(request.ArticleId)
+	err := md.ReduceFabulous(request.ArticleId[0])
 	switch errors.Cause(err) {
 	case model.ArticleIdNotExists:
-		s.Logger.Info(fmt.Sprintf("%+v", errors.Wrap(err, "article id not exist: "+request.ArticleId)))
+		s.Logger.Info(fmt.Sprintf("%+v", errors.Wrap(err, "article id not exist: "+request.ArticleId[0])))
 		return &rpc.Null{}, status.Error(ecode.DelArticleFabulousErr, ecode.DelArticleFabulousErr.Message())
 	case nil:
 		return &rpc.Null{}, nil

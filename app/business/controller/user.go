@@ -8,6 +8,7 @@ import (
 	"com.youyu.api/lib/log"
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -44,15 +45,13 @@ func (u *UserInfo) GetUserInfo(c *gin.Context) {
 		}
 	}
 	// 连接data_rpc
-	lis, err := ConnectAndConf.DataRpcConnPool.Get()
-	defer ConnectAndConf.DataRpcConnPool.Put(lis)
-	dataClient, _, err := GetDataRpcServer(lis, err)
-	if err != nil {
+	dataClient := TakeDataBaseLink()
+	if dataClient == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.ServerErr.Code(),
 			"message": ecode.ServerErr.Message(),
 		})
-		u.Logger.Error(err)
+		u.Logger.Error(errors.New("nil ptr"))
 		return
 	}
 	if self {
@@ -105,15 +104,13 @@ func (u *UserInfo) UpdateUserInfo(c *gin.Context) {
 	}
 	jsons.Uid = int32(uid)
 	// 连接data_rpc
-	lis, err := ConnectAndConf.DataRpcConnPool.Get()
-	defer ConnectAndConf.DataRpcConnPool.Put(lis)
-	dataClient, _, err := GetDataRpcServer(lis, err)
-	if err != nil {
+	dataClient := TakeDataBaseLink()
+	if dataClient == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.ServerErr.Code(),
 			"message": ecode.ServerErr.Message(),
 		})
-		u.Logger.Error(err)
+		u.Logger.Error(errors.New("nil ptr"))
 		return
 	}
 	_, err = dataClient.UpdateUserInfo(context.Background(),&jsons)
@@ -145,27 +142,23 @@ func (u *UserInfo) AddUserCheckInfo(c *gin.Context) {
 	}
 	// 根据不同的注册类型来添加用户验证信息
 	// 连接secretKey_rpc
-	secretKeyLis, err := ConnectAndConf.SecretKeyRpcConnPool.Get()
-	defer ConnectAndConf.SecretKeyRpcConnPool.Put(secretKeyLis)
-	client, _, err := GetSecretKeyRpcServer(secretKeyLis, err)
-	if err != nil {
+	client := TakeSecretKeyLink()
+	if client == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.ServerErr.Code(),
 			"message": ecode.ServerErr.Message(),
 		})
-		u.Logger.Error(err)
+		u.Logger.Error(errors.New("nil ptr"))
 		return
 	}
 	// 连接data_rpc
-	lis, err := ConnectAndConf.DataRpcConnPool.Get()
-	defer ConnectAndConf.DataRpcConnPool.Put(lis)
-	dataClient, _, err := GetDataRpcServer(lis, err)
-	if err != nil {
+	dataClient := TakeDataBaseLink()
+	if dataClient == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.ServerErr.Code(),
 			"message": ecode.ServerErr.Message(),
 		})
-		u.Logger.Error(err)
+		u.Logger.Error(errors.New("nil ptr"))
 		return
 	}
 	// 获取Token

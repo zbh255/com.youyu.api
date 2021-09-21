@@ -11,6 +11,7 @@ import (
 	"fmt"
 	go_encrypt "github.com/abingzo/go-encrypt"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	sts "github.com/tencentyun/qcloud-cos-sts-sdk/go"
 	"net/http"
 	"strconv"
@@ -66,15 +67,13 @@ func (r *ReSources) GetUploadHeadPortraitToken(c *gin.Context) {
 		return
 	}
 	// 连接data_rpc
-	lis, err := ConnectAndConf.DataRpcConnPool.Get()
-	defer ConnectAndConf.DataRpcConnPool.Put(lis)
-	dataClient, _, err := GetDataRpcServer(lis, err)
-	if err != nil {
+	dataClient := TakeDataBaseLink()
+	if dataClient == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.ServerErr.Code(),
 			"message": ecode.ServerErr.Message(),
 		})
-		r.Logger.Error(err)
+		r.Logger.Error(errors.New("nil ptr"))
 		return
 	}
 	uid, err := strconv.Atoi(uidString)

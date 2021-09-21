@@ -1,7 +1,7 @@
 package test
 
 import (
-	"com.youyu.api/app/rpc/model"
+	"com.youyu.api/app/rpc/data/model"
 	"com.youyu.api/lib/auth"
 	"com.youyu.api/lib/ecode"
 	cl "com.youyu.api/lib/log"

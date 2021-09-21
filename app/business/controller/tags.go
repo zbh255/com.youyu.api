@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/base64"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"net/http"
 	"strconv"
 )
@@ -35,19 +36,16 @@ func (t *Tags) AddTag(c *gin.Context) {
 		ReturnJsonParseErrJson(c)
 		return
 	}
-	lis, err := ConnectAndConf.DataRpcConnPool.Get()
-	client, _, err := GetDataRpcServer(lis, err)
-	if err != nil {
+	client := TakeDataBaseLink()
+	if client == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.ServerErr.Code(),
 			"message": ecode.ServerErr.Message(),
 		})
-		t.Logger.Error(err)
+		t.Logger.Error(errors.New("nil ptr"))
 		return
 	}
-	// 退出归还连接
-	defer ConnectAndConf.DataRpcConnPool.Put(lis)
-	_, err = client.AddTag(context.Background(), &rpc.Tag{Text: jsons.Tags})
+	_, err := client.AddTag(context.Background(), &rpc.Tag{Text: jsons.Tags})
 	st, _ := status.FromError(err)
 	c.JSON(http.StatusOK,gin.H{
 		"code":st.Code,
@@ -78,18 +76,15 @@ func (t *Tags) GetTagInt32Id(c *gin.Context) {
 	}
 	// 把按;分割的标签名还原为切片
 	tagTextS := utils.SplitStringsToTagList(string(tagTextString))
-	lis, err := ConnectAndConf.DataRpcConnPool.Get()
-	client, _, err := GetDataRpcServer(lis, err)
-	if err != nil {
+	client := TakeDataBaseLink()
+	if client == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.ServerErr.Code(),
 			"message": ecode.ServerErr.Message(),
 		})
-		t.Logger.Error(err)
+		t.Logger.Error(errors.New("nil ptr"))
 		return
 	}
-	// 退出归还连接
-	defer ConnectAndConf.DataRpcConnPool.Put(lis)
 	tag, err := client.GetTagInt32Id(context.Background(), &rpc.Tag{Text: tagTextS})
 	st, _ := status.FromError(err)
 	if st.Code != 0 {
@@ -129,18 +124,15 @@ func (t *Tags) GetTagText(c *gin.Context) {
 		}
 		tagIdS = append(tagIdS,int32(tid))
 	}
-	lis, err := ConnectAndConf.DataRpcConnPool.Get()
-	client, _, err := GetDataRpcServer(lis, err)
-	if err != nil {
+	client := TakeDataBaseLink()
+	if client == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    ecode.ServerErr.Code(),
 			"message": ecode.ServerErr.Message(),
 		})
-		t.Logger.Error(err)
+		t.Logger.Error(errors.New("nil ptr"))
 		return
 	}
-	// 退出归还连接
-	defer ConnectAndConf.DataRpcConnPool.Put(lis)
 	tag, err := client.GetTagText(context.Background(), &rpc.Tag{Tid: tagIdS})
 	st, _ := status.FromError(err)
 	if st.Code != 0 {
