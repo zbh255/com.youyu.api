@@ -25,7 +25,7 @@ type BaseApi interface {
 
 // GetIndexData 返回渲染首页需要的广告和文章的数据
 func (b *Base) GetIndexData(c *gin.Context) {
-	jsons := rpc.ArticleOptions{}
+	jsons := rpc.OrderOptions{}
 	err := c.BindJSON(&jsons)
 	if err != nil {
 		ReturnJsonParseErrJson(c)

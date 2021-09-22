@@ -205,7 +205,7 @@ func TestMysqlApiArticle(t *testing.T) {
 		t.Log("test updateArticle ok" + st.Message)
 	}
 	// 连接查询
-	result, err := client.GetArticleList(context.Background(), &rpc.ArticleOptions{
+	result, err := client.GetArticleList(context.Background(), &rpc.OrderOptions{
 		Type:    "desc",
 		Order:   "hot",
 		Page:    1,
@@ -274,7 +274,7 @@ func TestMysqlApiAdvertisement(t *testing.T) {
 	_, _ = client.AddAdvertisement(context.Background(), testData)
 	testData.AdvertisementId = 3
 	_, _ = client.AddAdvertisement(context.Background(), testData)
-	results, err := client.GetAdvertisementList(context.Background(), &rpc.ArticleOptions{
+	results, err := client.GetAdvertisementList(context.Background(), &rpc.OrderOptions{
 		Type:    "desc",
 		Order:   "",
 		Page:    1,
@@ -827,7 +827,12 @@ func TestMysqlCommentModel(t *testing.T) {
 		})
 	}
 	// 添加子评论
-	masterComments, err := client.GetComment(context.Background(), &rpc.CommentSlave{ArticleId: article.ArticleId})
+	masterComments, err := client.GetSetComments(context.Background(), &rpc.CommentSlave{ArticleId: article.ArticleId,Order: &rpc.OrderOptions{
+		Type:    "desc",
+		Order:   "fabulous",
+		Page:    1,
+		PageNum: 10,
+	}})
 	if st.Code != 0 {
 		t.Error(st.Code)
 		t.Error(st.Message)
@@ -848,7 +853,12 @@ func TestMysqlCommentModel(t *testing.T) {
 		}
 	}
 	// 获取添加完的评论
-	comments, err := client.GetComment(context.Background(), &rpc.CommentSlave{ArticleId: article.ArticleId})
+	comments, err := client.GetSetComments(context.Background(), &rpc.CommentSlave{ArticleId: article.ArticleId,Order: &rpc.OrderOptions{
+		Type:    "desc",
+		Order:   "fabulous",
+		Page:    1,
+		PageNum: 10,
+	}})
 	if st.Code != 0 {
 		t.Error(st.Code)
 		t.Error(st.Message)

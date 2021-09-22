@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// 返回服务器错误的响应
 func ReturnServerErrJson(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code":    ecode.ServerErr.Code(),
@@ -15,10 +16,19 @@ func ReturnServerErrJson(c *gin.Context) {
 	})
 }
 
+// 返回Json序列化失败的错误
 func ReturnJsonParseErrJson(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code":    ecode.JsonParseError.Code(),
 		"message": ecode.JsonParseError.Message(),
+	})
+}
+
+// 返回参数解析失败的错误
+func ReturnParaMeterErrJsons(c *gin.Context) {
+	c.JSON(http.StatusOK,gin.H{
+		"code":ecode.ParaMeterErr.Code(),
+		"message":ecode.ParaMeterErr.Message(),
 	})
 }
 

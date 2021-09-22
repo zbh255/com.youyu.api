@@ -26,6 +26,7 @@ type ArticleApi interface {
 	GetArticleStatistics(c *gin.Context)
 	// 文章的评论
 	GetArticleComments(c *gin.Context)
+	GetArticleSubComments(c *gin.Context)
 	AddArticleComment(c *gin.Context)
 	DeleteArticleComment(c *gin.Context)
 	UpdateCommentStatus(c *gin.Context)
@@ -286,6 +287,31 @@ func (a *Article) GetArticleComments(c *gin.Context) {
 		})
 		return
 	}
+	// 获得排序参数
+	orderOptions := rpc.OrderOptions{}
+	page := c.Query("page")
+	if page == "" {
+		orderOptions.Page = int32(Page)
+	}
+	prePage := c.DefaultQuery("pre_page",strconv.Itoa(MaxPrePage))
+	tmp,err := strconv.Atoi(prePage)
+	if err != nil {
+		ReturnParaMeterErrJsons(c)
+		return
+	}
+	if tmp > MaxPrePage {
+		orderOptions.PageNum = int32(MaxPrePage)
+	} else {
+		orderOptions.PageNum = int32(tmp)
+	}
+	sort := c.Query("sort")
+	if result,ok := OrderTableDriver[sort]; !ok {
+		ReturnParaMeterErrJsons(c)
+		return
+	} else {
+		orderOptions.Order = result.Order
+		orderOptions.Type = result.Type
+	}
 	// 获得data_rpc
 	client := TakeDataBaseLink()
 	if client == nil {
@@ -296,7 +322,51 @@ func (a *Article) GetArticleComments(c *gin.Context) {
 		a.Logger.Error(errors.New("nil ptr"))
 		return
 	}
-	result, err := client.GetComment(context.Background(),&rpc.CommentSlave{ArticleId: articleId})
+	result, err := client.GetSetComments(context.Background(),&rpc.CommentSlave{ArticleId: articleId,Order: &orderOptions})
+	st,_ := status.FromError(err)
+	c.JSON(http.StatusOK,gin.H{
+		"code":st.Code,
+		"message":st.Message,
+		"data":result,
+	})
+}
+
+// 获得文章下主评论的对应子评论
+func (a Article) GetArticleSubComments(c *gin.Context)  {
+	articleId := c.Param("article_id")
+	commentMid := c.Param("comment_mid")
+	if articleId == "" || commentMid == "" {
+		ReturnParaMeterErrJsons(c)
+		return
+	}
+	mid,err := strconv.ParseInt(commentMid,10,64)
+	if err != nil {
+		ReturnParaMeterErrJsons(c)
+		return
+	}
+	client := TakeDataBaseLink()
+	if client == nil {
+		ReturnServerErrJson(c)
+		return
+	}
+	// 获得排序参数
+	orderOptions := rpc.OrderOptions{}
+	page := c.Query("page")
+	if page == "" {
+		orderOptions.Page = int32(Page)
+	}
+	prePage := c.DefaultQuery("pre_page",strconv.Itoa(MaxPrePage))
+	tmp,err := strconv.Atoi(prePage)
+	if err != nil {
+		ReturnParaMeterErrJsons(c)
+		return
+	}
+	if tmp > MaxPrePage {
+		orderOptions.PageNum = int32(MaxPrePage)
+	} else {
+		orderOptions.PageNum = int32(tmp)
+	}
+	result, err := client.GetSubComments(context.Background(),&rpc.CommentSlave{CommentMid: mid,Order: &orderOptions})
 	st,_ := status.FromError(err)
 	c.JSON(http.StatusOK,gin.H{
 		"code":st.Code,

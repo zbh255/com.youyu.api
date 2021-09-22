@@ -62,7 +62,7 @@ aeLoop:
 	}
 }
 
-func (s *MysqlApiServer) GetArticleList(ctx context.Context, null *rpc.ArticleOptions) (*rpc.Article_Response, error) {
+func (s *MysqlApiServer) GetArticleList(ctx context.Context, null *rpc.OrderOptions) (*rpc.Article_Response, error) {
 	md := model.Article{}
 	results, err := md.GetArticles(&model.SelectOptions{
 		Type:    null.Type,
@@ -230,7 +230,7 @@ func (s *MysqlApiServer) GetAdvertisement(ctx context.Context, request *rpc.Adve
 
 }
 
-func (s *MysqlApiServer) GetAdvertisementList(ctx context.Context, null *rpc.ArticleOptions) (*rpc.AdvertisementResponse, error) {
+func (s *MysqlApiServer) GetAdvertisementList(ctx context.Context, null *rpc.OrderOptions) (*rpc.AdvertisementResponse, error) {
 	md := model.Advertisement{}
 	results, err := md.GetAdvertisements(&model.SelectOptions{
 		Type:    null.Type,
@@ -816,9 +816,9 @@ func (s *MysqlApiServer) AddComment(ctx context.Context, slave *rpc.CommentSlave
 	}
 }
 
-func (s *MysqlApiServer) GetComment(ctx context.Context, slave *rpc.CommentSlave) (*rpc.CommentShow, error) {
+func (s *MysqlApiServer) GetSetComments(ctx context.Context, slave *rpc.CommentSlave) (*rpc.CommentShow, error) {
 	md := model.CommentMaster{}
-	masterResults, err := md.GetMasterComments(slave.ArticleId)
+	masterResults, err := md.GetMasterComments(slave.ArticleId,slave.Order)
 	if errors.Cause(err) == model.ArticleIdNotExists {
 		return &rpc.CommentShow{}, status.Error(ecode.GetArticleErr, ecode.GetArticleErr.Message())
 	} else if errors.Cause(err) != nil {
@@ -826,46 +826,26 @@ func (s *MysqlApiServer) GetComment(ctx context.Context, slave *rpc.CommentSlave
 	}
 	// 获取子评论
 	mdcs := model.CommentSlave{}
-	slaveResults, err := mdcs.GetSlaveComments(masterResults)
+	// 从文章评论中获取，默认返回页长度为3,页数为1的评论
+	slaveResults, err := mdcs.GetSlaveComments(masterResults,1,3)
 	if errors.Cause(err) != nil {
 		return &rpc.CommentShow{}, status.Error(ecode.ServerErr, ecode.ServerErr.Message())
 	}
-	// TODO:转换考虑优化
-	// 转为指定返回类型
-	cs := make([]*rpc.CommentMasterShow, 0,len(slaveResults))
-	for k, v := range slaveResults {
-		scommment := make([]*rpc.CommentSlave, 0, len(v))
-		if len(v) != 0 {
-			for _, j := range v {
-				scommment = append(scommment, &rpc.CommentSlave{
-					CommentMid: j.CommentMid,
-					CommentSid: j.CommentSid,
-					Type:       rpc.CommentType(j.Type),
-					Text:       j.Text,
-					Uid:        int32(j.Uid),
-					ArticleId:  j.ArticleId,
-					Fabulous:   j.Fabulous,
-					ReplyId:    j.ReplyId,
-					CreateTime: j.CreateTime.String(),
-				})
-			}
-		}
-		cs = append(cs, &rpc.CommentMasterShow{
-			CommentMid:   k.CommentMid,
-			Type:         rpc.CommentType(k.Type),
-			Text:         k.Text,
-			Uid:          int32(k.Uid),
-			ArticleId:    k.ArticleId,
-			Fabulous:     k.Fabulous,
-			CreateTime:   k.CreateTime.String(),
-			IsTopic:      k.IsTop,
-			SlaveComment: scommment,
-		})
-	}
+	// 转换已优化
 	return &rpc.CommentShow{
-		Master:    cs,
+		Master:    slaveResults,
 		ArticleId: slave.ArticleId,
 	}, nil
+}
+
+func (s *MysqlApiServer) GetSubComments(ctx context.Context,slave *rpc.CommentSlave) (*rpc.CommentMasterShow,error) {
+	md := model.CommentSlave{}
+	if result,err := md.GetSlaveComments([]*model.CommentMaster{{CommentMid: slave.CommentMid}},
+	int(slave.Order.Page),int(slave.Order.PageNum)); err != nil {
+		return &rpc.CommentMasterShow{},status.Error(ecode.ServerErr,ecode.ServerErr.Message())
+	} else {
+		return &rpc.CommentMasterShow{CommentMid: result[0].CommentMid,SlaveComment: result[0].SlaveComment},nil
+	}
 }
 
 func (s *MysqlApiServer) UpdateCommentStatus(ctx context.Context, option *rpc.UpdateCommentOption) (*rpc.Null, error) {

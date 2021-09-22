@@ -44,7 +44,7 @@ func (this *ArticleRequestOne) Validate() error {
 func (this *Article) Validate() error {
 	return nil
 }
-func (this *ArticleOptions) Validate() error {
+func (this *OrderOptions) Validate() error {
 	return nil
 }
 func (this *AdvertisementOptions) Validate() error {
@@ -213,6 +213,11 @@ func (this *CommentSlave) Validate() error {
 	}
 	if this.Text == "" {
 		return github_com_mwitkow_go_proto_validators.FieldError("Text", fmt.Errorf(`value '%v' must not be an empty string`, this.Text))
+	}
+	if this.Order != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Order); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("Order", err)
+		}
 	}
 	return nil
 }

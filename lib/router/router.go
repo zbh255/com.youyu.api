@@ -28,6 +28,7 @@ func InitRouter(r *gin.Engine, logger log.Logger) {
 	// 文章评论接口,文章评论修改接口不对不同用户开放
 	//TODO /article/article_id/comment
 	v1.GET("/article/:article_id/comment",ControllerArticle.GetArticleComments)
+	v1.GET("/article/:article_id/comment/:comment_mid", ControllerArticle.GetArticleSubComments)
 
 	// 返回一些用于渲染页面的基本数据
 	// 返回列表的请求参数: ?position=index&type=list&page=3&page_num=4&order=hot&orderType=desc

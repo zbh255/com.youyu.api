@@ -17,7 +17,7 @@ message Article_request{
   repeated string article_id = 1;
   int32 uid = 2;
   ArticleListOption content_type = 3;
-  ArticleOptions options = 4;
+  OrderOptions options = 4;
 }
 
 // 简单的article_request,文章外围数据使用
@@ -36,11 +36,15 @@ message Article {
   int64 article_update_time = 8;
 }
 
-// 获取文章列表的选项
-message ArticleOptions {
+// 排序选项的原型
+message OrderOptions {
+  // 排序的类型比如desc,asc
   string type = 1;
+  // 要排序的字段，比如create_time
   string order = 2;
+  // 分页页数
   int32 page = 3;
+  // 一页中包含多少个数据
   int32 pageNum = 4;
 }
 
@@ -350,7 +354,7 @@ message comment_master_show {
   string create_time = 7 [
     (validator.field) = {string_not_empty:true}
   ];
-  bool is_topic = 9;
+  bool is_top = 9;
   repeated comment_slave slave_comment = 8;
 }
 
@@ -372,6 +376,7 @@ message comment_slave {
   int32 fabulous = 7;
   int64 reply_id = 8;
   string create_time = 9;
+  OrderOptions order = 10;
 }
 
 message comment_show {
